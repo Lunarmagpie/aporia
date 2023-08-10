@@ -4,22 +4,27 @@ package pam
 // #cgo LDFLAGS: -lpam -lpam_misc
 // #include <stdlib.h>
 // #include <security/pam_appl.h>
+// #include <pwd.h>
 // #include <login.h>
 import "C"
-import "unsafe"
 import (
 	"errors"
+	"fmt"
+	"os/exec"
+	"unsafe"
 )
 
 const service = "aporia"
 
 func Authenticate(username string, password string) error {
 	var handle *C.struct_pam_handle
-	password_str := C.CString(password)
-	conv := C.new_conv(password_str)
+	usernameStr := C.CString(username)
+	serviceStr := C.CString("aporia")
+	passwordStr := C.CString(password)
+	conv := C.new_conv(passwordStr)
 
 	{
-		ret := C.pam_start(C.CString(service), C.CString(username), &conv, &handle)
+		ret := C.pam_start(serviceStr, usernameStr, &conv, &handle)
 
 		if ret != C.PAM_SUCCESS {
 			return errors.New("Could not start pam session.")
@@ -32,7 +37,39 @@ func Authenticate(username string, password string) error {
 			return errors.New("Could not authenticate user.")
 		}
 	}
-	C.free(unsafe.Pointer(password_str))
+
+	{
+		ret := C.pam_acct_mgmt(handle, 0)
+		if ret != C.PAM_SUCCESS {
+			return errors.New("pam_acct_mgmt")
+		}
+	}
+
+	{
+		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
+		if ret != C.PAM_SUCCESS {
+			return errors.New("pam_setcred")
+		}
+	}
+
+	{
+		ret := C.pam_open_session(handle, 0)
+		if ret != C.PAM_SUCCESS {
+			C.pam_setcred(handle, C.PAM_DELETE_CRED)
+			return errors.New("pam_open_session")
+		}
+	}
+
+	pwnam := C.getpwnam(usernameStr)
+
+	initEnv(handle, pwnam)
+
+	C.free(unsafe.Pointer(usernameStr))
+	C.free(unsafe.Pointer(serviceStr))
+	C.free(unsafe.Pointer(passwordStr))
+
+	exec.Command("/bin/bash", "-c", "startx")
+
 	return nil
 }
 
@@ -71,5 +108,23 @@ func diagnose(err C.int) string {
 	default:
 		return "Unknown Error"
 	}
-	return "Error"
+}
+
+func initEnv(handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
+	homeDir := C.GoString(pwnam.pw_dir)
+	xauthority := fmt.Sprintf(homeDir, "/", ".Xauthority")
+
+	pamSetEnv(handle, "HOME", homeDir)
+	pamSetEnv(handle, "PWD", C.GoString(pwnam.pw_dir))
+	pamSetEnv(handle, "SHELL", C.GoString(pwnam.pw_shell))
+	pamSetEnv(handle, "USER", C.GoString(pwnam.pw_name))
+	pamSetEnv(handle, "LOGNAME", C.GoString(pwnam.pw_name))
+	pamSetEnv(handle, "PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin")
+	pamSetEnv(handle, "XAUTHORITY", xauthority)
+}
+
+func pamSetEnv(handle *C.struct_pam_handle, k string, v string) {
+	set := C.CString(fmt.Sprint(k, "=", v))
+	C.pam_putenv(handle, set)
+	C.free(unsafe.Pointer(set))
 }
