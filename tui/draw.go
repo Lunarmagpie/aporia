@@ -17,12 +17,12 @@ const brCorner = "┘"
 const boxHeight = 6
 const boxWidth = 30
 
-func (tui Tui) Draw() error {
+func (self Tui) Draw() error {
 	ansi.Clear()
 
-	drawMargin(tui.TermSize.Lines)
-	tui.drawBox(tui.TermSize.Cols)
-	drawMargin(tui.TermSize.Lines)
+	drawMargin(self.TermSize.Lines)
+	self.drawBox(self.TermSize.Cols)
+	drawMargin(self.TermSize.Lines)
 
 	return nil
 }
@@ -34,16 +34,25 @@ func drawMargin(height int) {
 	}
 }
 
-func (tui Tui) drawBox(width int) {
+func (self Tui) drawBox(width int) {
 	fmt.Println(tlCorner + strings.Repeat(horizontal, boxWidth-2) + trCorner)
 
-	for i, field := range tui.fields {
-		if i == tui.position {
-			ansi.Underline()
-		}
-		fmt.Printf(field.draw() + "\n")
-		ansi.Reset()
+	self.drawLine(self.message, width, false)
+
+	for i, field := range self.fields {
+		self.drawLine(field.draw(), width, i == self.position)
 	}
 
 	fmt.Println(blCorner + strings.Repeat(horizontal, boxWidth-2) + brCorner)
+}
+
+func (self Tui) drawLine(text string, width int, underline bool) {
+	fmt.Printf(vertical)
+	if underline {
+		ansi.Underline()
+	}
+	fmt.Printf(text)
+	fmt.Printf(strings.Repeat(" ", maxInt(boxWidth-2-len(text), 0)))
+	ansi.Reset()
+	fmt.Printf(vertical + "\n")
 }

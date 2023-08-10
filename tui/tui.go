@@ -1,16 +1,18 @@
 package tui
 
 import (
+	"fmt"
 	"reflect"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"aporia/pam"
+
+	"golang.org/x/term"
 )
 
 type Tui struct {
 	TermSize TermSize
-	Username string
-	Password string
 	position int
+	message string
 	fields   []field
 }
 
@@ -20,7 +22,7 @@ type TermSize struct {
 }
 
 func New() (Tui, error) {
-	cols, lines, err := terminal.GetSize(0)
+	cols, lines, err := term.GetSize(0)
 
 	if err != nil {
 		return Tui{}, err
@@ -32,35 +34,64 @@ func New() (Tui, error) {
 			Cols:  cols,
 		},
 		position: 0,
+		message: "",
 		fields: []field{
-			newInput("username"),
-			newInput("password"),
-			newButton("login"),
+			newList(),
+			newInput("username", false),
+			newInput("password", true),
 		},
 	}, nil
 }
 
-func (tui *Tui) NextPosition() {
-	tui.position = minInt(tui.position+1, len(tui.fields)-1)
+func (self *Tui) NextPosition() {
+	self.position = minInt(self.position+1, len(self.fields)-1)
 }
 
-func (tui *Tui) PrevPosition() {
-	tui.position = maxInt(tui.position-1, 0)
+func (self *Tui) PrevPosition() {
+	self.position = maxInt(self.position-1, 0)
 }
 
-func (tui *Tui) HandleInput(symbol []int) {
+func (self *Tui) onLastPosition() bool {
+	return self.position == len(self.fields) - 1
+}
+
+func (self *Tui) HandleInput(symbol []int) {
 	// Up arrow
 	if reflect.DeepEqual(symbol, []int{27, 91, 65}) {
-		tui.PrevPosition()
+		self.PrevPosition()
 		return
 	}
-	// Down arrow
+	// Down arrowself
 	if reflect.DeepEqual(symbol, []int{27, 91, 66}) {
-		tui.NextPosition()
+		self.NextPosition()
 		return
 	}
 
-	tui.fields[tui.position].onInput(tui, symbol)
+	// Enter key
+	if reflect.DeepEqual(symbol, []int{10}) {
+		if self.onLastPosition() {
+			self.login()
+		} else {
+			self.NextPosition()
+		}
+		return
+	}
+
+	self.fields[self.position].onInput(self, symbol)
+}
+
+func (self *Tui) login() {
+	username := self.fields[1].getContents()
+	password := self.fields[2].getContents()
+
+	err := pam.Authenticate(username, password)
+
+	if err != nil {
+		self.message = fmt.Sprint(err);
+	} else {
+		self.message = "Success!"
+	}
+	
 }
 
 func maxInt(a int, b int) int {

@@ -1,24 +1,32 @@
 package tui
 
+import "strings"
+
 type field interface {
 	draw() string
 	onInput(tui *Tui, symbol []int)
+	getContents() string
 }
 
 type input struct {
 	prompt   string
 	contents string
+	masked bool
 }
 
-func (self input) draw() string {
-	return self.prompt + ": " + self.contents
+func (self *input) draw() string {
+	var contents string
+	if self.masked {
+		contents = strings.Repeat("*", len(self.contents))
+	} else {
+		contents = self.contents
+	}
+	return self.prompt + ": " + contents
 }
 
 func (self *input) onInput(tui *Tui, symbol []int) {
 	if len(symbol) == 1 {
-		if symbol[0] == 10 {
-			tui.NextPosition()
-		} else if symbol[0] == 127 {
+		if symbol[0] == 127 {
 			if len(self.contents) > 0 {
 				self.contents = self.contents[:len(self.contents)-1]
 			}
@@ -28,27 +36,32 @@ func (self *input) onInput(tui *Tui, symbol []int) {
 	}
 }
 
-func newInput(prompt string) *input {
+func (self *input) getContents() string {
+	return self.contents
+}
+
+func newInput(prompt string, masked bool) *input {
 	return &input{
 		prompt:   prompt,
 		contents: "",
+		masked: masked,
 	}
 }
 
-type button struct {
-	name string
+type list struct {}
+
+func (self *list) draw() string {
+	return "< bspwm >"
 }
 
-func (button button) draw() string {
-	return button.name
+func (self *list) onInput(tui *Tui, symbol []int) {
+	
 }
 
-func (button *button) onInput(tui *Tui, symbol []int) {
-
+func (self *list) getContents() string {
+	return "bspwm"
 }
 
-func newButton(name string) *button {
-	return &button{
-		name: name,
-	}
+func newList() *list {
+	return &list {}
 }
