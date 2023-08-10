@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os/exec"
 	"unsafe"
 )
@@ -68,9 +69,20 @@ func Authenticate(username string, password string) error {
 	C.free(unsafe.Pointer(serviceStr))
 	C.free(unsafe.Pointer(passwordStr))
 
-	exec.Command("/bin/bash", "-c", "startx")
+	launch(pwnam)
 
 	return nil
+}
+
+func launch(pwnam *C.struct_passwd) {
+	shell := C.GoString(pwnam.pw_shell)
+
+	cmd := exec.Command(shell, "-c", "/usr/bin/tput reset")
+	if err := cmd.Run(); err != nil {
+		log.Fatal(cmd)
+	}
+
+	cmd.Wait()
 }
 
 func diagnose(err C.int) string {
