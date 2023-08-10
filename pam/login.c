@@ -7,51 +7,53 @@ static int conv_callback(
   struct pam_response **resp,
   void *appdata_ptr
 ) {
-  int i;
+    int i;
 
-  *resp = calloc(num_msg, sizeof(struct pam_response));
-  if (*resp == NULL) {
-      return PAM_BUF_ERR;
-  }
+    *resp = calloc(num_msg, sizeof(struct pam_response));
+    if (*resp == NULL) {
+        return PAM_BUF_ERR;
+    }
 
-  int result = PAM_SUCCESS;
-  for (i = 0; i < num_msg; i++) {
-      char *username, *password;
-      switch (msg[i]->msg_style) {
-        case PAM_PROMPT_ECHO_ON:
-            username = ((char **) appdata_ptr)[0];
-            (*resp)[i].resp = strdup(username);
-            break;
-        case PAM_PROMPT_ECHO_OFF:
-            password = ((char **) appdata_ptr)[1];
-            (*resp)[i].resp = strdup(password);
-            break;
-        case PAM_ERROR_MSG:
-            fprintf(stderr, "%s\n", msg[i]->msg);
-            result = PAM_CONV_ERR;
-            break;
-        case PAM_TEXT_INFO:
-            printf("%s\n", msg[i]->msg);
-            break;
-      }
-      if (result != PAM_SUCCESS) {
-          break;
-      }
-  }
+    int result = PAM_SUCCESS;
 
-  if (result != PAM_SUCCESS) {
-      free(*resp);
-      *resp = 0;
-  }
+    const char *password = appdata_ptr;
 
-  return result;
+    for (i = 0; i < num_msg; i++) {
+        switch (msg[i]->msg_style) {
+            case PAM_PROMPT_ECHO_ON:
+                // This is called when asking for the username.
+                // That will never happen.
+                break;
+            case PAM_PROMPT_ECHO_OFF:
+                (*resp)[i].resp = strdup(password);
+                break;
+            case PAM_ERROR_MSG:
+                // TODO
+                fprintf(stderr, "%s\n", msg[i]->msg);
+                result = PAM_CONV_ERR;
+                break;
+            case PAM_TEXT_INFO:
+                // TODO
+                printf("%s\n", msg[i]->msg);
+                break;
+        }
+        if (result != PAM_SUCCESS) {
+            break;
+        }
+    }
+
+    if (result != PAM_SUCCESS) {
+        free(*resp);
+        *resp = 0;
+    }
+
+    return result;
 }
 
-struct pam_conv new_conv(const char *username, const char *password) {
-  const char *data[2] = {username, password};
-  struct pam_conv conv = {
-    conv_callback,
-    data,
-  };
-  return conv;
+struct pam_conv new_conv(char *password) {
+    struct pam_conv conv = {
+        conv_callback,
+        password,
+    };
+    return conv;
 } 
