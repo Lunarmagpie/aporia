@@ -3,16 +3,12 @@ package tui
 import (
 	"os"
 	"reflect"
-
-	"golang.org/x/term"
 )
 
 // Read characters from the terminal. A sequence such as \027[n will be
 // returned as one character.
 // Note that this function will put the terminal into raw mode.
 func ReadTermChars() func() ([]int, error) {
-	term.MakeRaw(int(os.Stdin.Fd()))
-
 	buff := []int{}
 
 	readOneChar := func() (int, error) {

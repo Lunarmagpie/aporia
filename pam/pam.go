@@ -61,6 +61,9 @@ func Authenticate(username string, password string) error {
 	pwnam := C.getpwnam(usernameStr)
 	C.initgroups(pwnam.pw_name, pwnam.pw_gid)
 
+	// Child shell must be cleared here
+
+
 	{
 		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
 		if ret != C.PAM_SUCCESS {
