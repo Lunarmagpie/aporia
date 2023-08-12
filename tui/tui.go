@@ -123,13 +123,16 @@ func (self *Tui) login() {
 	password := self.fields[1].getContents()
 
 	term.Restore(int(os.Stdin.Fd()), self.oldState)
+
 	err := pam.Authenticate(username, password)
+
+	// We reset the terminal no matter if the login was right or wrong.
+	// This way wrong logins make the user re-enter the username and password.
+	self.reset()
 
 	if err != nil {
 		self.message = fmt.Sprint(err)
 	} else {
-		fmt.Print("\033[H\033[0J")
-		self.reset()
 		self.message = "Success!"
 	}
 }
