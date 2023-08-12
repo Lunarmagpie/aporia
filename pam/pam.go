@@ -17,7 +17,6 @@ package pam
 import "C"
 import (
 	"errors"
-	// "fmt"
 	"os"
 	"strings"
 	"syscall"

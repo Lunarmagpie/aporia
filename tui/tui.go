@@ -11,12 +11,12 @@ import (
 )
 
 type Tui struct {
-	TermSize TermSize
-	position int
-	message  string
-	fields   []field
-	asciiContext asciiArt
-	shouldBeCleared bool
+	TermSize        TermSize
+	position        int
+	message         string
+	fields          []field
+	asciiContext    asciiArt
+	shouldBeRedrawn bool
 }
 
 type TermSize struct {
@@ -32,8 +32,6 @@ func New() (Tui, error) {
 		return Tui{}, err
 	}
 
-	fmt.Print("\033[3J")
-
 	return Tui{
 		TermSize: TermSize{
 			Lines: lines,
@@ -41,16 +39,24 @@ func New() (Tui, error) {
 		},
 		position: 0,
 		message:  "SATA ANDAGI",
-		fields: []field{
-			newInput("username", false),
-			newInput("password", true),
-		},
+		fields: getFields(),
+		shouldBeRedrawn: true,
 	}, nil
 }
 
+// Create the list of fields
+func getFields() []field {
+	return []field{
+		newInput("username", false),
+		newInput("password", true),
+	}
+}
+
 func (self *Tui) reset() {
-	// TODO
-	fmt.Print("Should reset here")
+	self.shouldBeRedrawn = true
+	self.position = 0
+	self.fields = getFields()
+	self.Draw()
 }
 
 func (self *Tui) NextPosition() {
@@ -96,6 +102,9 @@ func (self *Tui) HandleInput(symbol []int) {
 }
 
 func (self *Tui) login() {
+	// On login, we have to clear the terminal.
+	self.shouldBeRedrawn = true
+
 	username := self.fields[0].getContents()
 	password := self.fields[1].getContents()
 
@@ -104,10 +113,10 @@ func (self *Tui) login() {
 	if err != nil {
 		self.message = fmt.Sprint(err)
 	} else {
+		fmt.Print("\033[H\033[0J")
+		self.reset()
 		self.message = "Success!"
 	}
-
-	self.reset()
 }
 
 func maxInt(a int, b int) int {
