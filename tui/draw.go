@@ -18,6 +18,7 @@ const boxHeight = 6
 const boxWidth = 30
 
 func (self Tui) Draw() error {
+	fmt.Print("printing iteration")
 	// drawMargin(self.TermSize.Lines)
 	self.drawBox(self.TermSize.Cols)
 	// drawMargin(self.TermSize.Lines)
