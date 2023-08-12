@@ -45,6 +45,7 @@ func (self *asciiArt) draw(termSize TermSize) {
 	}
 
 	for i := 0; i < termSize.Lines && i+linesSkip < self.lines; i++ {
-		fmt.Print(strings.Repeat(" ", startCol), self.strLines[i+linesSkip][colsSkip:], "\n\r")
+		maxSize := minInt(termSize.Cols + colsSkip, len(self.strLines[i+linesSkip]))
+		fmt.Print(strings.Repeat(" ", startCol), self.strLines[i+linesSkip][colsSkip:maxSize], "\n\r")
 	}
 }
