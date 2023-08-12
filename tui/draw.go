@@ -49,9 +49,7 @@ func (self *Tui) Draw() error {
 		fmt.Print("\033[H\033[0J")
 		ascii := newAscii(_asciiArt)
 		self.shouldBeRedrawn = false
-
-		boxHeight := self.drawBox()
-		ascii.draw(ascii.calculatePosition(self.TermSize.Cols, self.TermSize.Lines-boxHeight))
+		ascii.draw(ascii.calculatePosition(self.TermSize.Cols, self.TermSize.Lines))
 	}
 
 	// Draw the message
@@ -84,7 +82,7 @@ func eraseLine(num int) {
 }
 
 // Draw the box. Return the vertical lines taken up.
-func (self Tui) drawBox() int {
+func (self Tui) drawBox() {
 	fmt.Print(tlCorner, strings.Repeat(horizontal, boxWidth-2), trCorner, "\n\r")
 
 	self.drawLine(self.message)
@@ -94,8 +92,6 @@ func (self Tui) drawBox() int {
 	}
 
 	fmt.Print(blCorner, strings.Repeat(horizontal, boxWidth-2), brCorner, "\n\r")
-
-	return 2 + len(self.fields)
 }
 
 func (self Tui) drawLine(text string) {

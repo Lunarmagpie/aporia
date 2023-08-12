@@ -2,14 +2,13 @@ package ansi
 
 import "fmt"
 
-func Underline() {
-	fmt.Print("\033[4m")
-}
-
-func Reset() {
-	fmt.Print("\033[0m")
-}
-
 func Clear() {
-	fmt.Print("\033[2J")
+	fmt.Print("\033[H\033[0J")
+}
+
+// Erase n chars in front of the cursor
+func EraseChars(num int) {
+	fmt.Print("\033[", num, "C")
+	fmt.Print("\033[1K" )
+	fmt.Print("\033[", num, "D")
 }
