@@ -44,7 +44,7 @@ func (self *asciiArt) draw(termSize TermSize) {
 		fmt.Print("\n\r")
 	}
 
-	for i := linesSkip; i < termSize.Lines && i < len(self.strLines); i++ {
-		fmt.Print(strings.Repeat(" ", startCol), self.strLines[i][colsSkip:], "\n\r")
+	for i := 0; i < termSize.Lines && i+linesSkip < self.lines; i++ {
+		fmt.Print(strings.Repeat(" ", startCol), self.strLines[i+linesSkip][colsSkip:], "\n\r")
 	}
 }
