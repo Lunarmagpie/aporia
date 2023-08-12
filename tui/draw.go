@@ -55,9 +55,12 @@ func (self *Tui) Draw() error {
 	}
 
 	// Draw the message
-	moveCursor(2, 0)
-	fmt.Print("\033[K")
-	self.drawLine(self.message)
+	if self.lastDrawnMessage != self.message {
+		self.lastDrawnMessage = self.message
+		moveCursor(2, 0)
+		fmt.Print("\033[K")
+		self.drawLine(self.message)
+	}
 	
 	// Draw the currently selected field
 	thisLine := self.fields[self.position].draw()

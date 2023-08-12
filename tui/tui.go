@@ -17,6 +17,7 @@ type Tui struct {
 	fields          []field
 	asciiContext    asciiArt
 	shouldBeRedrawn bool
+	lastDrawnMessage string
 }
 
 type TermSize struct {
