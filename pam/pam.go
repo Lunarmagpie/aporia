@@ -1,17 +1,25 @@
 package pam
 
-// #cgo CFLAGS: -g -Wall
+// #cgo CFLAGS: -g
 // #cgo LDFLAGS: -lpam -lpam_misc
 // #include <stdlib.h>
+// #include <unistd.h>
+// #include <sys/wait.h>
+// #include <grp.h>
 // #include <security/pam_appl.h>
 // #include <pwd.h>
+// #include <string.h>
+// #include <utmp.h>
+// #include <utmpx.h>
 // #include <login.h>
+// #include <utils.h>
 import "C"
 import (
 	"errors"
 	"fmt"
-	"log"
-	"os/exec"
+	"os"
+	"strings"
+	"syscall"
 	"unsafe"
 )
 
@@ -63,29 +71,40 @@ func Authenticate(username string, password string) error {
 
 	pwnam := C.getpwnam(usernameStr)
 
-	initEnv(handle, pwnam)
-
 	C.free(unsafe.Pointer(usernameStr))
 	C.free(unsafe.Pointer(serviceStr))
 	C.free(unsafe.Pointer(passwordStr))
 
-	launch(pwnam)
+	launch(handle, pwnam)
 
 	return nil
 }
 
-func launch(pwnam *C.struct_passwd) {
-	shell := C.GoString(pwnam.pw_shell)
+func launch(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
+	pid := C.fork()
 
-	cmd := exec.Command(shell, "-c", "/usr/bin/tput reset")
-	if err := cmd.Run(); err != nil {
-		log.Fatal(cmd)
+	if pid == 0 {
+		// Child
+		initUser(pwnam)
+		shell := C.GoString(pwnam.pw_shell)
+		initEnv(pam_handle, pwnam)
+
+		syscall.Exec(shell, []string{shell}, os.Environ())
 	}
 
-	cmd.Wait()
+	// Parent
+	utmpEntry := C.struct_utmp{}
+	addUtmpEntry(&utmpEntry, pwnam, pid)
+
+	C.pam_close_session(pam_handle, 0)
+
+	var status C.int
+	C.waitpid(pid, &status, 0)
+
+	removeUtmpEntry(&utmpEntry)
 }
 
-func diagnose(err C.int) string {
+func pamReason(err C.int) string {
 	switch err {
 	case C.PAM_ACCT_EXPIRED:
 		return "PAM_ACCT_EXPIRED"
@@ -122,21 +141,98 @@ func diagnose(err C.int) string {
 	}
 }
 
-func initEnv(handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
-	homeDir := C.GoString(pwnam.pw_dir)
-	xauthority := fmt.Sprintf(homeDir, "/", ".Xauthority")
+func initUser(pwnam *C.struct_passwd) {
+	C.initgroups(pwnam.pw_name, pwnam.pw_gid)
+	C.setgid(pwnam.pw_gid)
+	C.setuid(pwnam.pw_uid)
+	C.chdir(pwnam.pw_dir)
 
-	pamSetEnv(handle, "HOME", homeDir)
-	pamSetEnv(handle, "PWD", C.GoString(pwnam.pw_dir))
-	pamSetEnv(handle, "SHELL", C.GoString(pwnam.pw_shell))
-	pamSetEnv(handle, "USER", C.GoString(pwnam.pw_name))
-	pamSetEnv(handle, "LOGNAME", C.GoString(pwnam.pw_name))
-	pamSetEnv(handle, "PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin")
-	pamSetEnv(handle, "XAUTHORITY", xauthority)
+	fmt.Print(pwnam.pw_uid)
+
+	C.fchown(0, pwnam.pw_uid, pwnam.pw_gid)
 }
 
-func pamSetEnv(handle *C.struct_pam_handle, k string, v string) {
-	set := C.CString(fmt.Sprint(k, "=", v))
-	C.pam_putenv(handle, set)
-	C.free(unsafe.Pointer(set))
+func initEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
+	homeDir := C.GoString(pwnam.pw_dir)
+	xauthority := fmt.Sprint(homeDir, "/", ".Xauthority")
+
+	os.Clearenv()
+
+	os.Setenv("HOME", homeDir)
+	os.Setenv("PWD", homeDir)
+	os.Setenv("SHELL", C.GoString(pwnam.pw_shell))
+	os.Setenv("USER", C.GoString(pwnam.pw_name))
+	os.Setenv("LOGNAME", C.GoString(pwnam.pw_name))
+	os.Setenv("XAUTHORITY", xauthority)
+
+	_, found := os.LookupEnv("TERM")
+	if !found {
+		os.Setenv("TERM", "linux")
+	}
+
+	var path string
+	if pwnam.pw_uid == 0 {
+		// Root
+		path = "/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin"
+	} else {
+		// User
+		path = "/usr/local/sbin:/usr/local/bin:/usr/bin"
+	}
+	os.Setenv("PATH", path)
+
+	// XDG Env
+	// user := fmt.Sprint("/run/user/", pwnam.pw_uid)
+
+	// os.Setenv("XDG_RUNTIME_DIR", user)
+	// os.Setenv("XDG_SESSION_CLASS", "user")
+	// os.Setenv("XDG_SESSION_ID", "1")
+	// os.Setenv("XDG_SESSION_DESKTOP", "tty")
+	// os.Setenv("XDG_SESSION_TYPE", "tty")
+	// os.Setenv("XDG_SEAT", "seat0")
+	// os.Setenv("XDG_VTNR", "1")
+
+	pamEnvList := C.pam_getenvlist(pam_handle)
+
+	for _, v := range cArrayToGoSlice(pamEnvList) {
+		l := strings.Split(v, "=")
+		os.Setenv(l[0], l[1])
+	}
+
+	C.free(unsafe.Pointer(pamEnvList))
+}
+
+func cArrayToGoSlice(arr **C.char) []string {
+	var envs []string
+
+	for i := C.int(0); C.index_string_array(arr, i) != nil; i++ {
+		nextString := C.GoString(C.index_string_array(arr, i))
+		envs = append(envs, nextString)
+	}
+
+	return envs
+}
+
+func addUtmpEntry(entry *C.struct_utmp, pwnam *C.struct_passwd, pid C.int) {
+	entry.ut_type = C.USER_PROCESS
+	entry.ut_pid = pid
+
+	ttynameString := C.GoString(C.ttyname(C.STDIN_FILENO))
+
+	C.strcpy((*C.char)(unsafe.Pointer(&entry.ut_line)), C.CString(strings.TrimPrefix(ttynameString, "/dev/")))
+	C.strcpy((*C.char)(unsafe.Pointer(&entry.ut_id)), C.CString(strings.TrimPrefix(ttynameString, "/dev/tty")))
+	C.strcpy((*C.char)(unsafe.Pointer(&entry.ut_user)), pwnam.pw_name)
+	C.memset(unsafe.Pointer(&entry.ut_host), 0, C.UT_HOSTSIZE)
+
+	C.setutent()
+	C.pututline(entry)
+}
+
+func removeUtmpEntry(entry *C.struct_utmp) {
+	entry.ut_type = C.DEAD_PROCESS
+	C.memset(unsafe.Pointer(&entry.ut_line), 0, C.UT_LINESIZE)
+	C.memset(unsafe.Pointer(&entry.ut_host), 0, C.UT_NAMESIZE)
+
+	C.setutent()
+	C.pututline(entry)
+	C.endutent()
 }

@@ -7,8 +7,6 @@ import (
 )
 
 func main() {
-	fmt.Printf("Entering the aporia display manager.")
-	
 	ui, _ := tui.New()
 	charReader := tui.ReadTermChars()
 

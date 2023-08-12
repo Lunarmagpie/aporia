@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"aporia/pam"
@@ -12,7 +13,7 @@ import (
 type Tui struct {
 	TermSize TermSize
 	position int
-	message string
+	message  string
 	fields   []field
 }
 
@@ -34,13 +35,17 @@ func New() (Tui, error) {
 			Cols:  cols,
 		},
 		position: 0,
-		message: "",
+		message:  "SATA ANDAGI",
 		fields: []field{
-			newList(),
 			newInput("username", false),
 			newInput("password", true),
 		},
 	}, nil
+}
+
+func (self *Tui) reset() {
+	// TODO
+	fmt.Print("Should reset here")
 }
 
 func (self *Tui) NextPosition() {
@@ -52,7 +57,7 @@ func (self *Tui) PrevPosition() {
 }
 
 func (self *Tui) onLastPosition() bool {
-	return self.position == len(self.fields) - 1
+	return self.position == len(self.fields)-1
 }
 
 func (self *Tui) HandleInput(symbol []int) {
@@ -68,7 +73,7 @@ func (self *Tui) HandleInput(symbol []int) {
 	}
 
 	// Enter key
-	if reflect.DeepEqual(symbol, []int{10}) {
+	if reflect.DeepEqual(symbol, []int{13}) {
 		if self.onLastPosition() {
 			self.login()
 		} else {
@@ -77,21 +82,27 @@ func (self *Tui) HandleInput(symbol []int) {
 		return
 	}
 
+	// Control + C
+	if reflect.DeepEqual(symbol, []int{3}) {
+		os.Exit(1)
+	}
+
 	self.fields[self.position].onInput(self, symbol)
 }
 
 func (self *Tui) login() {
-	username := self.fields[1].getContents()
-	password := self.fields[2].getContents()
+	username := self.fields[0].getContents()
+	password := self.fields[1].getContents()
 
 	err := pam.Authenticate(username, password)
 
 	if err != nil {
-		self.message = fmt.Sprint(err);
+		self.message = fmt.Sprint(err)
 	} else {
 		self.message = "Success!"
 	}
-	
+
+	self.reset()
 }
 
 func maxInt(a int, b int) int {
