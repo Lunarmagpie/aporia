@@ -53,8 +53,8 @@ func New() (Tui, error) {
 // Create the list of fields
 func getFields() []field {
 	return []field{
-		newInput("username", false),
-		newInput("password", true),
+		newInput("user", false),
+		newInput("pass", true),
 	}
 }
 
