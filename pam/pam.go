@@ -180,7 +180,6 @@ func initEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	os.Setenv("SHELL", C.GoString(pwnam.pw_shell))
 	os.Setenv("USER", C.GoString(pwnam.pw_name))
 	os.Setenv("LOGNAME", C.GoString(pwnam.pw_name))
-	// os.Setenv("XAUTHORITY", xauthority)
 
 	_, found := os.LookupEnv("TERM")
 	if !found {

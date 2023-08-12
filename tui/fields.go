@@ -47,21 +47,3 @@ func newInput(prompt string, masked bool) *input {
 		masked: masked,
 	}
 }
-
-type list struct {}
-
-func (self *list) draw() string {
-	return "< bspwm >"
-}
-
-func (self *list) onInput(tui *Tui, symbol []int) {
-	
-}
-
-func (self *list) getContents() string {
-	return "bspwm"
-}
-
-func newList() *list {
-	return &list {}
-}

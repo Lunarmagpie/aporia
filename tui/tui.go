@@ -15,6 +15,8 @@ type Tui struct {
 	position int
 	message  string
 	fields   []field
+	asciiContext asciiArt
+	shouldBeCleared bool
 }
 
 type TermSize struct {
@@ -22,12 +24,15 @@ type TermSize struct {
 	Cols  int
 }
 
+// Create a new UI. Clears the terminal.
 func New() (Tui, error) {
 	cols, lines, err := term.GetSize(0)
 
 	if err != nil {
 		return Tui{}, err
 	}
+
+	fmt.Print("\033[3J")
 
 	return Tui{
 		TermSize: TermSize{
