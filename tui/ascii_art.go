@@ -33,9 +33,9 @@ func newAscii(art string) asciiArt {
 	}
 }
 
-func (self *asciiArt) calculatePosition(screenWidth int, screenHeight int) (int, int) {
+func (self *asciiArt) calculatePosition(screenWidth int, screenHeight int, yOffset int) (int, int) {
 	x := (screenWidth - self.width) / 2
-	y := (screenHeight - self.height) / 2
+	y := (screenHeight - self.height) / 2 - yOffset
 	return x, y
 }
 
