@@ -17,7 +17,7 @@ package pam
 import "C"
 import (
 	"errors"
-	"fmt"
+	// "fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -87,13 +87,10 @@ func launch(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 
 	if pid == 0 {
 		// Child
-		fmt.Print("Hello here!")
-		foregroundProcessGroup()
 		becomeUser(pwnam)
 		shell := C.GoString(pwnam.pw_shell)
 		initEnv(pam_handle, pwnam)
 		syscall.Exec(shell, []string{shell}, os.Environ())
-		os.Exit(1)
 	}
 
 	// Parent
@@ -146,6 +143,9 @@ func pamReason(err C.int) string {
 }
 
 func becomeUser(pwnam *C.struct_passwd) error {
+	if 0 != C.chdir(pwnam.pw_dir) {
+		return errors.New("chdir")
+	}
 	if 0 != C.setgid(pwnam.pw_gid) {
 		return errors.New("setgid")
 	}
@@ -155,22 +155,14 @@ func becomeUser(pwnam *C.struct_passwd) error {
 	if 0 != C.initgroups(pwnam.pw_name, pwnam.pw_gid) {
 		return errors.New("initgroups")
 	}
-	if 0 != C.chdir(pwnam.pw_dir) {
-		return errors.New("chdir")
-	}
-	// C.fchown(C.STDIN_FILENO, pwnam.pw_uid, pwnam.pw_gid)
-	// C.fchmod(C.STDIN_FILENO, 777)
-	// C.chown(C.CString("/dev/tty"), pwnam.pw_uid, pwnam.pw_gid)
-	// C.chmod(C.CString("/dev/tty"), 777)
-
 	return nil
 }
 
 func foregroundProcessGroup() error {
 	pid := C.getpid()
-	// if 0 != C.setpgid(pid, pid) {
-		// return errors.New("setgpid")
-	// }
+	if 0 != C.setpgid(pid, pid) {
+		return errors.New("setgpid")
+	}
 	if 0 != C.tcsetpgrp(C.STDIN_FILENO, pid) {
 		return errors.New("tcsetpgrp")
 	}
@@ -180,7 +172,6 @@ func foregroundProcessGroup() error {
 
 func initEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	homeDir := C.GoString(pwnam.pw_dir)
-	// xauthority := fmt.Sprint(homeDir, "/", ".Xauthority")
 
 	os.Clearenv()
 
