@@ -11,12 +11,14 @@ import (
 )
 
 type Tui struct {
-	TermSize        TermSize
-	position        int
-	message         string
-	fields          []field
-	asciiContext    asciiArt
-	shouldBeRedrawn bool
+	TermSize         TermSize
+	position         int
+	message          string
+	fields           []field
+	asciiContext     asciiArt
+	shouldBeRedrawn  bool
+	lastDrawnMessage string
+	oldState         *term.State
 }
 
 type TermSize struct {
@@ -32,16 +34,20 @@ func New() (Tui, error) {
 		return Tui{}, err
 	}
 
-	return Tui{
+	self := Tui{
 		TermSize: TermSize{
 			Lines: lines,
 			Cols:  cols,
 		},
-		position: 0,
-		message:  "SATA ANDAGI",
-		fields: getFields(),
+		position:        0,
+		message:         "SATA ANDAGI",
+		fields:          getFields(),
 		shouldBeRedrawn: true,
-	}, nil
+	}
+
+	self.setup()
+
+	return self, nil
 }
 
 // Create the list of fields
@@ -52,10 +58,18 @@ func getFields() []field {
 	}
 }
 
+// Functions that need to be called to get the terminal into
+// The proper state.
+func (self *Tui) setup() {
+	self.position = 0
+	self.oldState, _ = term.MakeRaw(int(os.Stdin.Fd()))
+}
+
 func (self *Tui) reset() {
 	self.shouldBeRedrawn = true
 	self.position = 0
 	self.fields = getFields()
+	self.setup()
 	self.Draw()
 }
 
@@ -108,13 +122,17 @@ func (self *Tui) login() {
 	username := self.fields[0].getContents()
 	password := self.fields[1].getContents()
 
+	term.Restore(int(os.Stdin.Fd()), self.oldState)
+
 	err := pam.Authenticate(username, password)
+
+	// We reset the terminal no matter if the login was right or wrong.
+	// This way wrong logins make the user re-enter the username and password.
+	self.reset()
 
 	if err != nil {
 		self.message = fmt.Sprint(err)
 	} else {
-		fmt.Print("\033[H\033[0J")
-		self.reset()
 		self.message = "Success!"
 	}
 }

@@ -10,9 +10,9 @@ import (
 A struct that makes loading and printing ascii art easy.
 */
 type asciiArt struct {
-	lines  []string
-	height int
-	width  int
+	strLines []string
+	lines    int
+	cols     int
 }
 
 func newAscii(art string) asciiArt {
@@ -27,24 +27,24 @@ func newAscii(art string) asciiArt {
 	}
 
 	return asciiArt{
-		lines:  lines,
-		width:  longestLine,
-		height: len(lines),
+		strLines: lines,
+		cols:     longestLine,
+		lines:    len(lines),
 	}
 }
 
-func (self *asciiArt) calculatePosition(screenWidth int, screenHeight int) (int, int) {
-	x := (screenWidth - self.width) / 2
-	y := (screenHeight - self.height) / 2
-	return x, y
-}
+func (self *asciiArt) draw(termSize TermSize) {
+	linesSkip := maxInt((self.lines-termSize.Lines)/2, 0)
+	colsSkip := maxInt((self.cols-termSize.Cols)/2, 0)
 
-func (self *asciiArt) draw(xOffset int, yOffset int) {
-	for i := 0; i < yOffset; i++ {
+	startLine := maxInt((termSize.Lines-self.lines)/2, 0)
+	startCol := maxInt((termSize.Cols-self.cols)/2, 0)
+
+	for i := 0; i < startLine; i++ {
 		fmt.Print("\n\r")
 	}
 
-	for _, line := range self.lines {
-		fmt.Print(strings.Repeat(" ", xOffset), line, "\n\r")
+	for i := linesSkip; i < termSize.Lines && i < len(self.strLines); i++ {
+		fmt.Print(strings.Repeat(" ", startCol), self.strLines[i][colsSkip:], "\n\r")
 	}
 }

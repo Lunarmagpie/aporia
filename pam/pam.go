@@ -17,18 +17,17 @@ package pam
 import "C"
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"syscall"
 	"unsafe"
 )
 
-const service = "ly"
-
 func Authenticate(username string, password string) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
-	serviceStr := C.CString(service)
+	serviceStr := C.CString("aporia")
 	passwordStr := C.CString(password)
 	conv := C.new_conv(passwordStr)
 
@@ -60,6 +59,9 @@ func Authenticate(username string, password string) error {
 
 	pwnam := C.getpwnam(usernameStr)
 	C.initgroups(pwnam.pw_name, pwnam.pw_gid)
+
+	// Child shell must be cleared here
+	fmt.Print("\033[H\033[0J")
 
 	{
 		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
