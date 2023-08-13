@@ -4,6 +4,12 @@
 @include common-session
 @include common-password
 
+session required pam_loginuid.so
+
+# The default configuration for this is insanely long.
+# Life is too short for that.
+session optional pam_faildelay.so delay=1000000
+
 auth        include    login
 account     include    login
 session     include    login
