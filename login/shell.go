@@ -20,10 +20,9 @@ func launchShell(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	utmpEntry := C.struct_utmp{}
 	addUtmpEntry(&utmpEntry, pwnam, pid)
 
-	closePamSession(pam_handle)
-
 	var status C.int
 	C.waitpid(pid, &status, 0)
 
+	closePamSession(pam_handle)
 	removeUtmpEntry(&utmpEntry)
 }

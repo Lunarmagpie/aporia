@@ -111,5 +111,6 @@ func pamReason(err C.int) string {
 }
 
 func closePamSession(handle *C.struct_pam_handle) {
+	C.pam_setcred(handle, C.PAM_DELETE_CRED)
 	C.pam_close_session(handle, 0)
 }
