@@ -84,8 +84,8 @@ func (self *Tui) SetAsciiArt(asciiArt AsciiArt) {
 // Create the list of fields
 func getFields() []field {
 	return []field{
-		newInput("user", false),
-		newInput("pass", true),
+		newInput("username", false),
+		newInput("password", true),
 	}
 }
 
