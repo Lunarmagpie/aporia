@@ -97,8 +97,8 @@ func (self *Tui) HandleInput(symbol []int) {
 		self.PrevPosition()
 		return
 	}
-	// Down arrowself
-	if reflect.DeepEqual(symbol, []int{27, 91, 66}) {
+	// Down arrow and tab
+	if reflect.DeepEqual(symbol, []int{27, 91, 66}) || reflect.DeepEqual(symbol, []int{9}) {
 		self.NextPosition()
 		return
 	}
