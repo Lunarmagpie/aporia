@@ -9,7 +9,8 @@ Only systemd is supported.
 ## Installtion
 Install the dependencies:
 - Go compiler
-- pam
+- gcc
+- pam (libpam-dev on ubuntu)
 
 Run the install.sh script as root.
 ```sh
