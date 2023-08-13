@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 
-	"aporia/pam"
+	"aporia/login"
 
 	"golang.org/x/term"
 )
@@ -19,6 +19,7 @@ type Tui struct {
 	asciiArt         AsciiArt
 	shouldBeRedrawn  bool
 	lastDrawnMessage string
+	loggedIn         bool
 	oldState         *term.State
 }
 
@@ -35,7 +36,7 @@ func New() (Tui, error) {
 		return Tui{}, err
 	}
 
-	self := Tui{
+	return Tui{
 		TermSize: TermSize{
 			Lines: lines,
 			Cols:  cols,
@@ -44,11 +45,28 @@ func New() (Tui, error) {
 		message:         "SATA ANDAGI",
 		fields:          getFields(),
 		shouldBeRedrawn: true,
+		loggedIn:        false,
+	}, nil
+}
+
+func (self *Tui) Start(charReader CharReader) {
+	self.reset()
+	self.draw()
+
+	for {
+		symbol, err := charReader()
+
+		if err != nil {
+			fmt.Printf(err.Error())
+			continue
+		}
+
+		self.handleInput(symbol)
+		if self.loggedIn {
+			break
+		}
+		self.draw()
 	}
-
-	self.setup()
-
-	return self, nil
 }
 
 func (self *Tui) SetAsciiArt(asciiArt AsciiArt) {
@@ -66,17 +84,11 @@ func getFields() []field {
 
 // Functions that need to be called to get the terminal into
 // The proper state.
-func (self *Tui) setup() {
+func (self *Tui) reset() {
+	self.loggedIn = false
 	self.position = 0
 	self.oldState, _ = term.MakeRaw(int(os.Stdin.Fd()))
-}
-
-func (self *Tui) reset() {
-	self.shouldBeRedrawn = true
-	self.position = 0
 	self.fields = getFields()
-	self.setup()
-	self.Draw()
 }
 
 func (self *Tui) NextPosition() {
@@ -91,7 +103,7 @@ func (self *Tui) onLastPosition() bool {
 	return self.position == len(self.fields)-1
 }
 
-func (self *Tui) HandleInput(symbol []int) {
+func (self *Tui) handleInput(symbol []int) {
 	// Up arrow
 	if reflect.DeepEqual(symbol, []int{27, 91, 65}) {
 		self.PrevPosition()
@@ -130,7 +142,7 @@ func (self *Tui) login() {
 
 	term.Restore(int(os.Stdin.Fd()), self.oldState)
 
-	err := pam.Authenticate(username, password)
+	err := login.Authenticate(username, password)
 
 	// We reset the terminal no matter if the login was right or wrong.
 	// This way wrong logins make the user re-enter the username and password.
@@ -140,6 +152,7 @@ func (self *Tui) login() {
 		self.message = fmt.Sprint(err)
 	} else {
 		self.message = "Success!"
+		self.loggedIn = true
 	}
 }
 

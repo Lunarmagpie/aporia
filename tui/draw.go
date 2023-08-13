@@ -17,7 +17,7 @@ const brCorner = "┘"
 const boxHeight = 6
 const boxWidth = 30
 
-func (self *Tui) Draw() error {
+func (self *Tui) draw() error {
 	// Reset cursor position
 	if self.shouldBeRedrawn {
 		ansi.Clear()
