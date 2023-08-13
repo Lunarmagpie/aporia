@@ -2,7 +2,7 @@
 
 go build
 
-cp extra/aporia.pam /etc/pam/aporia
+cp extra/aporia.pam /etc/pam.d/aporia
 cp extra/aporia.service /etc/systemd/system/aporia.service
 cp aporia /bin/aporia
 
