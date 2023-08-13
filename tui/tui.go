@@ -20,7 +20,6 @@ type Tui struct {
 	shouldBeRedrawn  bool
 	lastDrawnMessage string
 	loggedIn         bool
-	isRaw            bool
 	oldState         *term.State
 }
 
@@ -54,7 +53,6 @@ func New() (Tui, error) {
 		shouldBeRedrawn: true,
 		loggedIn:        false,
 		oldState:        state,
-		isRaw:           false,
 	}, nil
 }
 
@@ -96,10 +94,7 @@ func getFields() []field {
 func (self *Tui) reset() {
 	self.loggedIn = false
 	self.position = 0
-	if !self.isRaw {
-		term.MakeRaw(int(os.Stdin.Fd()))
-		self.isRaw = true
-	}
+	term.MakeRaw(int(os.Stdin.Fd()))
 	self.fields = getFields()
 }
 
@@ -153,7 +148,6 @@ func (self *Tui) login() {
 	password := self.fields[1].getContents()
 
 	term.Restore(int(os.Stdin.Fd()), self.oldState)
-	self.isRaw = false
 
 	err := login.Authenticate(username, password)
 
