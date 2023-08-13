@@ -7,7 +7,11 @@ Aporia is a login manager that displays ascii art.
 Only systemd is supported.
 
 ## Installtion
-Run the install.sh script as root
+Install the dependencies:
+- Go compiler
+- pam
+
+Run the install.sh script as root.
 ```sh
 # ./install.sh
 ```
