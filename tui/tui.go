@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"reflect"
 
@@ -15,7 +16,7 @@ type Tui struct {
 	position         int
 	message          string
 	fields           []field
-	asciiContext     asciiArt
+	asciiArt         AsciiArt
 	shouldBeRedrawn  bool
 	lastDrawnMessage string
 	oldState         *term.State
@@ -48,6 +49,11 @@ func New() (Tui, error) {
 	self.setup()
 
 	return self, nil
+}
+
+func (self *Tui) SetAsciiArt(asciiArt AsciiArt) {
+	self.asciiArt = asciiArt
+	self.message = asciiArt.messages[rand.Intn(len(asciiArt.messages))]
 }
 
 // Create the list of fields

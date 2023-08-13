@@ -16,8 +16,9 @@ package pam
 // #include <utils.h>
 import "C"
 import (
+	"aporia/ansi"
+	"aporia/constants"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -27,7 +28,7 @@ import (
 func Authenticate(username string, password string) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
-	serviceStr := C.CString("aporia")
+	serviceStr := C.CString(constants.PamService)
 	passwordStr := C.CString(password)
 	conv := C.new_conv(passwordStr)
 
@@ -61,7 +62,7 @@ func Authenticate(username string, password string) error {
 	C.initgroups(pwnam.pw_name, pwnam.pw_gid)
 
 	// Child shell must be cleared here
-	fmt.Print("\033[H\033[0J")
+	ansi.Clear()
 
 	{
 		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)

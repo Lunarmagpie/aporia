@@ -9,13 +9,22 @@ import (
 /*
 A struct that makes loading and printing ascii art easy.
 */
-type asciiArt struct {
+type AsciiArt struct {
 	strLines []string
 	lines    int
 	cols     int
+
+	messages []string
+	origin Origin
 }
 
-func newAscii(art string) asciiArt {
+type Origin string
+
+const (
+	Center Origin = "center"
+)
+
+func NewAsciiArt(art string, messages []string, origin Origin) AsciiArt {
 	lines := strings.Split(art, "\n")
 
 	longestLine := utf8.RuneCountInString(lines[0])
@@ -26,14 +35,16 @@ func newAscii(art string) asciiArt {
 		}
 	}
 
-	return asciiArt{
+	return AsciiArt{
 		strLines: lines,
 		cols:     longestLine,
 		lines:    len(lines),
+		messages: messages,
+		origin: origin,
 	}
 }
 
-func (self *asciiArt) draw(termSize TermSize) {
+func (self *AsciiArt) draw(termSize TermSize) {
 	linesSkip := maxInt((self.lines-termSize.Lines)/2, 0)
 	colsSkip := maxInt((self.cols-termSize.Cols)/2, 0)
 
