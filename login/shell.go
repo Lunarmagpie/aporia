@@ -4,10 +4,7 @@ package login
 // #include <sys/wait.h>
 // #include <utmp.h>
 import "C"
-import (
-	"os"
-	"syscall"
-)
+import "syscall"
 
 func launchShell(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	pid := C.fork()
@@ -16,8 +13,7 @@ func launchShell(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 		// Child
 		becomeUser(pwnam)
 		shell := C.GoString(pwnam.pw_shell)
-		initEnv(pam_handle, pwnam)
-		syscall.Exec(shell, []string{shell}, os.Environ())
+		syscall.Exec(shell, []string{shell}, makeEnv(pam_handle, pwnam))
 	}
 
 	// Parent

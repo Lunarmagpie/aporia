@@ -10,8 +10,9 @@ package login
 // #include <utils.h>
 import "C"
 import (
-	"os"
 	"errors"
+	"fmt"
+	"os"
 	"strings"
 	"unsafe"
 )
@@ -32,32 +33,40 @@ func becomeUser(pwnam *C.struct_passwd) error {
 	return nil
 }
 
-func initEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
+func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) []string {
 	homeDir := C.GoString(pwnam.pw_dir)
 
-	os.Clearenv()
+	env := []string{}
 
-	os.Setenv("HOME", homeDir)
-	os.Setenv("PWD", homeDir)
-	os.Setenv("SHELL", C.GoString(pwnam.pw_shell))
-	os.Setenv("USER", C.GoString(pwnam.pw_name))
-	os.Setenv("LOGNAME", C.GoString(pwnam.pw_name))
-
-	_, found := os.LookupEnv("TERM")
-	if !found {
-		os.Setenv("TERM", "linux")
+	setEnv := func(k string, v string) {
+		env = append(env, k+"="+v)
 	}
 
-	os.Setenv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin")
+	setEnv("HOME", homeDir)
+	setEnv("PWD", homeDir)
+	setEnv("SHELL", C.GoString(pwnam.pw_shell))
+	setEnv("USER", C.GoString(pwnam.pw_name))
+	setEnv("LOGNAME", C.GoString(pwnam.pw_name))
+
+	termValue, found := os.LookupEnv("TERM")
+	if found {
+		setEnv("TERM", termValue)
+	} else {
+		setEnv("TERM", "linux")
+	}
+
+	setEnv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin")
 
 	pamEnvList := C.pam_getenvlist(pam_handle)
 
 	for _, v := range cArrayToGoSlice(pamEnvList) {
 		l := strings.Split(v, "=")
-		os.Setenv(l[0], l[1])
+		setEnv(l[0], l[1])
 	}
 
 	C.free(unsafe.Pointer(pamEnvList))
+
+	return env
 }
 
 func cArrayToGoSlice(arr **C.char) []string {
