@@ -2,7 +2,7 @@
 
 Aporia is a login manager that displays ascii art.
 
-<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/7c5ab59a-0aa4-45ac-983c-d7002501bfdf" alt="drawing" width="700"/>
+<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/3e91ac76-df08-49ea-87f5-98e4c3105058" alt="drawing" width="700"/>
 
 Only systemd is supported.
 
