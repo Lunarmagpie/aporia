@@ -23,7 +23,7 @@ jobs:
 
     - name: Build
       run: |
-        apt-get install libpam0g-dev -y
+        sudo apt-get install libpam0g-dev -y
         go build
 
     - name: Check
