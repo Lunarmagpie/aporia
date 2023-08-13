@@ -64,7 +64,7 @@ func Authenticate(username string, password string) error {
 		ret := C.pam_open_session(handle, 0)
 		if ret != C.PAM_SUCCESS {
 			C.pam_setcred(handle, C.PAM_DELETE_CRED)
-			return errors.New("pam_open_session")
+			return errors.New("pam_open_session " + pamReason(ret))
 		}
 	}
 
