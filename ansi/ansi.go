@@ -8,9 +8,9 @@ func Clear() {
 
 // Erase n chars from the start of the line
 func EraseChars(num int) {
-	fmt.Print("\033[", num, "C")
+	fmt.Print("\033[", num - 1, "C")
 	fmt.Print("\033[1K" )
-	fmt.Print("\033[", num, "D")
+	fmt.Print("\033[", num - 1, "D")
 }
 
 func MoveCursor(line int, col int) {
