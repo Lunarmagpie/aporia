@@ -2,6 +2,8 @@
 
 Aporia is a login manager that displays ascii art.
 
+<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/7c5ab59a-0aa4-45ac-983c-d7002501bfdf" alt="drawing" width="700"/>
+
 # Installtion
 Run the install.sh script as root
 ```sh
