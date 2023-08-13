@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"runtime"
 	"time"
 
 	"aporia/tui"
@@ -9,6 +10,7 @@ import (
 
 func main() {
 	rand.Seed(time.Now().Unix())
+	runtime.LockOSThread()
 
 	config, err := loadConfig()
 	if err != nil {
