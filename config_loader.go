@@ -3,10 +3,12 @@ package main
 import (
 	"aporia/constants"
 	"aporia/tui"
+	"io/fs"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type config struct {
@@ -69,15 +71,28 @@ func loadConfig() (*config, error) {
 
 	asciiArts := []tui.AsciiArt{}
 
-	for _, entry := range entries {
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
+
+	parseEntry := func(entry fs.DirEntry) {
+		defer wg.Done()
 		if strings.HasSuffix(entry.Name(), "."+constants.AsciiFileExt) {
 			asciiFile, err := parseAsciiFile(filepath.Join(constants.ConfigDir, entry.Name()))
 			if err != nil {
-				continue
+				return
 			}
+			mu.Lock()
 			asciiArts = append(asciiArts, *asciiFile)
+			mu.Unlock()
 		}
 	}
+
+	for _, entry := range entries {
+		wg.Add(1)
+		go parseEntry(entry)
+	}
+
+	wg.Wait()
 
 	return &config{
 		asciiArts: asciiArts,

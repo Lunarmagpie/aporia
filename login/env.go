@@ -11,7 +11,6 @@ package login
 import "C"
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"unsafe"
