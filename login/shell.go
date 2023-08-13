@@ -1,5 +1,7 @@
 package login
 
+// #cgo CFLAGS: -g
+// #cgo LDFLAGS: -lpam -lpam_misc
 // #include <unistd.h>
 // #include <sys/wait.h>
 // #include <utmp.h>

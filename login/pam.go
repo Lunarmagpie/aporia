@@ -1,5 +1,6 @@
 package login
 
+// #cgo CFLAGS: -g
 // #cgo LDFLAGS: -lpam -lpam_misc
 // #include <stdlib.h>
 // #include <pwd.h>

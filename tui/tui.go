@@ -20,7 +20,7 @@ type Tui struct {
 	shouldBeRedrawn  bool
 	lastDrawnMessage string
 	loggedIn         bool
-	isRaw bool
+	isRaw            bool
 	oldState         *term.State
 }
 
@@ -37,6 +37,12 @@ func New() (Tui, error) {
 		return Tui{}, err
 	}
 
+	state, err := term.GetState(int(os.Stdin.Fd()))
+
+	if err != nil {
+		return Tui{}, err
+	}
+
 	return Tui{
 		TermSize: TermSize{
 			Lines: lines,
@@ -47,7 +53,8 @@ func New() (Tui, error) {
 		fields:          getFields(),
 		shouldBeRedrawn: true,
 		loggedIn:        false,
-		isRaw: false,
+		oldState:        state,
+		isRaw:           false,
 	}, nil
 }
 
@@ -90,7 +97,7 @@ func (self *Tui) reset() {
 	self.loggedIn = false
 	self.position = 0
 	if !self.isRaw {
-		self.oldState, _ = term.MakeRaw(int(os.Stdin.Fd()))
+		term.MakeRaw(int(os.Stdin.Fd()))
 		self.isRaw = true
 	}
 	self.fields = getFields()
