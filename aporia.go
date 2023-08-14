@@ -18,7 +18,7 @@ func main() {
 		config = &config_
 	}
 
-	ui, _ := tui.New()
+	ui, _ := tui.New(config.sessions)
 
 	charReader := tui.ReadTermChars()
 

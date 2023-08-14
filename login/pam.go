@@ -15,7 +15,7 @@ import (
 	"unsafe"
 )
 
-func Authenticate(username string, password string) error {
+func Authenticate(username string, password string, session Session) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
 	serviceStr := C.CString(constants.PamService)
@@ -69,7 +69,7 @@ func Authenticate(username string, password string) error {
 		}
 	}
 
-	launchShell(handle, pwnam)
+	launch(session, handle, pwnam)
 
 	return nil
 }

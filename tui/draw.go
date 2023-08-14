@@ -32,18 +32,16 @@ func (self *Tui) draw() error {
 	if self.lastDrawnMessage != self.message {
 		self.lastDrawnMessage = self.message
 		ansi.MoveCursor(2, 0)
-		ansi.EraseChars(boxWidth)
 		self.drawLine(self.message)
 	}
 
 	// Draw the currently selected field
-	thisLine := self.fields[self.position].draw()
+	thisLine, cursorPos := self.fields[self.position].draw(boxWidth - 2)
 
 	ansi.MoveCursor(self.position+3, 0)
-	ansi.EraseChars(boxWidth)
 	self.drawLine(thisLine)
 
-	ansi.MoveCursor(self.position+3, len(thisLine)+2)
+	ansi.MoveCursor(self.position+3, cursorPos + 1)
 
 	return nil
 }
@@ -66,7 +64,8 @@ func (self Tui) drawBox() {
 	self.drawLine(self.message)
 
 	for _, field := range self.fields {
-		self.drawLine(field.draw())
+		line, _ := field.draw(boxWidth - 2)
+		self.drawLine(line)
 	}
 
 	fmt.Print(blCorner, strings.Repeat(horizontal, boxWidth-2), brCorner, "\n\r")

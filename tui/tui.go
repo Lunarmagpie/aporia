@@ -21,6 +21,7 @@ type Tui struct {
 	lastDrawnMessage string
 	loggedIn         bool
 	oldState         *term.State
+	sessions         []login.Session
 }
 
 type TermSize struct {
@@ -29,7 +30,7 @@ type TermSize struct {
 }
 
 // Create a new UI. Clears the terminal.
-func New() (Tui, error) {
+func New(sessions []login.Session) (Tui, error) {
 	cols, lines, err := term.GetSize(0)
 
 	if err != nil {
@@ -49,10 +50,11 @@ func New() (Tui, error) {
 		},
 		position:        0,
 		message:         "SATA ANDAGI",
-		fields:          getFields(),
+		fields:          getFields(sessions),
 		shouldBeRedrawn: true,
 		loggedIn:        false,
 		oldState:        state,
+		sessions:        sessions,
 	}, nil
 }
 
@@ -82,8 +84,14 @@ func (self *Tui) SetAsciiArt(asciiArt AsciiArt) {
 }
 
 // Create the list of fields
-func getFields() []field {
+func getFields(sessions []login.Session) []field {
+	sessionNames := []string{}
+	for _, session := range sessions {
+		sessionNames = append(sessionNames, session.Name)
+	}
+
 	return []field{
+		newPicker(sessionNames),
 		newInput("username", false),
 		newInput("password", true),
 	}
@@ -95,7 +103,7 @@ func (self *Tui) reset() {
 	self.loggedIn = false
 	self.position = 0
 	term.MakeRaw(int(os.Stdin.Fd()))
-	self.fields = getFields()
+	self.fields = getFields(self.sessions)
 }
 
 func (self *Tui) NextPosition() {
@@ -144,12 +152,21 @@ func (self *Tui) login() {
 	// On login, we have to clear the terminal.
 	self.shouldBeRedrawn = true
 
-	username := self.fields[0].getContents()
-	password := self.fields[1].getContents()
+	sessionName := self.fields[0].getContents()
+	username := self.fields[1].getContents()
+	password := self.fields[2].getContents()
 
 	term.Restore(int(os.Stdin.Fd()), self.oldState)
 
-	err := login.Authenticate(username, password)
+	var session login.Session
+	for _, this_session := range self.sessions {
+		if this_session.Name == sessionName {
+			session = this_session
+			break
+		}
+	}
+
+	err := login.Authenticate(username, password, session)
 
 	// We reset the terminal no matter if the login was right or wrong.
 	// This way wrong logins make the user re-enter the username and password.

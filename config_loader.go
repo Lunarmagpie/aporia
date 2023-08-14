@@ -2,6 +2,7 @@ package main
 
 import (
 	"aporia/constants"
+	"aporia/login"
 	"aporia/tui"
 	"io/fs"
 	"math/rand"
@@ -13,6 +14,7 @@ import (
 
 type config struct {
 	asciiArts []tui.AsciiArt
+	sessions  []login.Session
 }
 
 func parseAsciiFile(filepath string) (*tui.AsciiArt, error) {
@@ -70,20 +72,26 @@ func loadConfig() (*config, error) {
 	}
 
 	asciiArts := []tui.AsciiArt{}
+	sessions := []login.Session{}
 
+	// NOTE: We don't need a mutex here because the runtime is locked to one thread.
 	wg := sync.WaitGroup{}
-	mu := sync.Mutex{}
 
 	parseEntry := func(entry fs.DirEntry) {
 		defer wg.Done()
+		filepath := filepath.Join(constants.ConfigDir, entry.Name())
 		if strings.HasSuffix(entry.Name(), "."+constants.AsciiFileExt) {
-			asciiFile, err := parseAsciiFile(filepath.Join(constants.ConfigDir, entry.Name()))
+			asciiFile, err := parseAsciiFile(filepath)
 			if err != nil {
 				return
 			}
-			mu.Lock()
 			asciiArts = append(asciiArts, *asciiFile)
-			mu.Unlock()
+		} else if strings.HasSuffix(entry.Name(), ".x11") {
+			name := strings.TrimSuffix(entry.Name(), ".x11")
+			sessions = append(sessions, login.X11Session(name, filepath))
+		} else if strings.HasSuffix(entry.Name(), ".wayland") {
+			name := strings.TrimSuffix(entry.Name(), ".wayland")
+			sessions = append(sessions, login.WaylandSession(name, filepath))
 		}
 	}
 
@@ -96,6 +104,7 @@ func loadConfig() (*config, error) {
 
 	return &config{
 		asciiArts: asciiArts,
+		sessions:  append(sessions, login.ShellSession()),
 	}, nil
 }
 
@@ -103,6 +112,7 @@ func loadConfig() (*config, error) {
 func defaultConfig() config {
 	return config{
 		asciiArts: []tui.AsciiArt{},
+		sessions:  []login.Session{login.ShellSession()},
 	}
 }
 
