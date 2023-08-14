@@ -1,7 +1,7 @@
 [Unit]
 Description=Aporia display manager
 After=systemd-user-sessions.service plymouth-quit-wait.service
-After=getty@tty1.service
+Conflicts=getty@tty1.service
 
 [Service]
 Type=idle
