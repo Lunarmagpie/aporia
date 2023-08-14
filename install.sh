@@ -8,6 +8,8 @@ if
   (mkdir /etc/aporia || true) &&
   cp extra/xsetup.sh /etc/aporia/xsetup.sh &&
   cp extra/wsetup.sh /etc/aporia/wsetup.sh &&
+  chmod +x /etc/aporia/xsetup.sh &&
+  chmod +x /etc/aporia/wsetup.sh &&
   cp aporia /bin/aporia
 then
   set +e
