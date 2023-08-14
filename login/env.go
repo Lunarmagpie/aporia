@@ -69,6 +69,8 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 	setEnv("XDG_VTNR", "1")
 	setEnv("XDG_SESSION_TYPE", "x11")
 
+	os.Chown(user, int(pwnam.pw_uid), int(pwnam.pw_gid))
+
 	setEnv("DBUS_SESSION_BUS_ADDRESS", fmt.Sprint("unix:path=/run/user/", pwnam.pw_uid, "/bus"))
 
 	pamEnvList := C.pam_getenvlist(pam_handle)
