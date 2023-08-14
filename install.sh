@@ -8,6 +8,7 @@ cp aporia /bin/aporia
 
 echo "It is ok this command fails"
 systemctl disable display-manager.service
+systemctl disable getty@tty1.service
 systemctl enable aporia.service
 
 mkdir /etc/aporia
