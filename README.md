@@ -44,6 +44,8 @@ This file is run to start your window manager.
 exec Hyprland
 ```
 
+These files MUST be set to executable with `sudo chmod +x filename`.
+
 ## Keybinds
 Aporia supports basics keybinds.
 

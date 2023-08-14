@@ -75,7 +75,7 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 
 	for _, v := range cArrayToGoSlice(pamEnvList) {
 		l := strings.Split(v, "=")
-		setEnv(l[0], l[1])
+		setEnv(l[0], strings.Join(l[1:], "="))
 	}
 
 	C.free(unsafe.Pointer(pamEnvList))
