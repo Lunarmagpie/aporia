@@ -98,3 +98,12 @@ session    optional   pam_keyinit.so force revoke
 @include common-account
 @include common-session
 @include common-password
+
+### My modifications ###
+# Activate pam gnome keyring
+auth      optional     pam_gnome_keyring.so
+session   optional     pam_gnome_keyring.so auto_start
+
+# Kwallet
+auth            optional        pam_kwallet5.so
+session         optional        pam_kwallet5.so auto_start
