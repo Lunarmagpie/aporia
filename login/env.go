@@ -34,7 +34,7 @@ func becomeUser(pwnam *C.struct_passwd) error {
 	return nil
 }
 
-func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopName string) []string {
+func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopName string, sessionType string) []string {
 	homeDir := C.GoString(pwnam.pw_dir)
 
 	envMap := map[string]string{}
@@ -67,7 +67,7 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 	setEnv("XDG_SESSION_DESKTOP", desktopName)
 	setEnv("XDG_SEAT", "seat0")
 	setEnv("XDG_VTNR", "1")
-	setEnv("XDG_SESSION_TYPE", "wayland")
+	setEnv("XDG_SESSION_TYPE", sessionType)
 
 	os.Chown(user, int(pwnam.pw_uid), int(pwnam.pw_gid))
 

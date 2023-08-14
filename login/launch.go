@@ -11,12 +11,12 @@ import (
 	"syscall"
 )
 
-type SessionType int
+type SessionType string
 
 const (
-	shellSession SessionType = iota
-	x11Session
-	waylandSession
+	shellSession   = "tty"
+	x11Session     = "x11"
+	waylandSession = "wayland"
 )
 
 type Session struct {
@@ -57,7 +57,7 @@ func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_pa
 		// Child
 		becomeUser(pwnam)
 		shell := C.GoString(pwnam.pw_shell)
-		env := makeEnv(pam_handle, pwnam, session.Name)
+		env := makeEnv(pam_handle, pwnam, session.Name, string(session.sessionType))
 
 		switch session.sessionType {
 		case shellSession:
