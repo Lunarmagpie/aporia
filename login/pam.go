@@ -6,6 +6,7 @@ package login
 // #include <pwd.h>
 // #include <grp.h>
 // #include <security/pam_appl.h>
+// #include <security/pam_misc.h>
 // #include <login.h>
 // #include <utils.h>
 import "C"
@@ -13,6 +14,7 @@ import (
 	"aporia/ansi"
 	"aporia/constants"
 	"errors"
+	"fmt"
 	"unsafe"
 )
 
@@ -80,6 +82,11 @@ func Authenticate(username string, password string, session Session) error {
 	usedPam = true
 
 	C.set_pam_env(handle)
+
+	loc := C.CString(fmt.Sprint("unix:path=/run/user/", pwnam.pw_uid, "/bus"))
+	runtimeDir := C.CString(fmt.Sprint("unix:path=/run/user/", pwnam.pw_uid))
+	C.pam_misc_setenv(handle, C.CString("XDG_RUNTIME_DIR"), runtimeDir, 0)
+	C.pam_misc_setenv(handle, C.CString("DBUS_SESSION_BUS_ADDRESS"), loc, 0)
 
 	launch(session, handle, pwnam)
 

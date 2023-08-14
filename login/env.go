@@ -71,8 +71,6 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 
 	os.Chown(user, int(pwnam.pw_uid), int(pwnam.pw_gid))
 
-	setEnv("DBUS_SESSION_BUS_ADDRESS", fmt.Sprint("unix:path=/run/user/", pwnam.pw_uid, "/bus"))
-
 	pamEnvList := C.pam_getenvlist(pam_handle)
 
 	for _, v := range cArrayToGoSlice(pamEnvList) {
