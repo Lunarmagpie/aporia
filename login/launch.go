@@ -96,7 +96,7 @@ func launchShell(env []string, shell string) {
 }
 
 func launchX11(env []string, shell string, command string) {
-	// Run all x11 xsession.d scripts
+	// command = "/etc/aporia/xsetup.sh " + command
 	// syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/xsetup.sh \"startx" + startxPath + "\""}, env)
 }
 
