@@ -23,8 +23,46 @@ You have to disable whatever display manager is running as well.
 To have ascii art you must put a file in `/etc/aporia/NAME.ascii`. Name can be whatever you want. It doesn't matter.
 The file must follow the format of the example file `examples/luna.ascii`. Be careful not to make an error!
 
+### Adding Sessions
+Sessions are added as scripts.
+
+#### Adding a bspwm session (X11)
+Create a file called `bspwm.x11` and put it in the `/etc/aporia` directory.
+This file is run as an argument to `startx`.
+
+```sh
+#!/bin/bash
+exec bspwm
+```
+
+#### Adding a hyprland session (wayland)
+Create a file called `hyprland.wayland` and put it in the `/etc/aporia` directory.
+
+```sh
+#!/bin/bash
+exec Hyprland
+```
+
 ## Keybinds
 Aporia supports basics keybinds.
 
 - <kbd>Enter</kbd>: Confirm
 - <kbd>Tab</kbd>: Next Line
+
+
+
+## FAQ
+<details>
+<summary>How do I make the font size in my TTY smaller?</summary>
+<br>
+Edit the FONTSIZE variable in `/etc/default/console-setup`. I use fontzie
+`16x12` on my computer.
+</details>
+
+## Thank You
+- Thank you to the creator of [ly](https://github.com/FairyGlade/ly) for making your project under WTFPL.
+I used this project to help me figure out PAM.
+
+- Thank you to gsgx for your [display manager guide](https://gsgx.me/posts/how-to-write-a-display-manager/).
+
+In return, I encourage people to use this project's code however they want.
