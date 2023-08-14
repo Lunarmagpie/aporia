@@ -8,10 +8,6 @@ package login
 import "C"
 import (
 	"aporia/ansi"
-	"aporia/constants"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"syscall"
 )
 
