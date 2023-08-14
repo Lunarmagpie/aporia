@@ -6,9 +6,9 @@ if
   cp extra/aporia.pam /etc/pam.d/aporia
   cp extra/aporia.service /etc/systemd/system/aporia.service
   cp aporia /bin/aporia
-  mkdir /etc/aporia
 then
   set +e
+  mkdir /etc/aporia
   echo -e "Run the command \033[94msystemctl enable aporia.service\033[39;49m to enable aporia"
   echo " | See more information at https://github.com/lunarmagpie/aporia"
 else
