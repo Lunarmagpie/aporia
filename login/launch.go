@@ -8,6 +8,10 @@ package login
 import "C"
 import (
 	"aporia/ansi"
+	"aporia/constants"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"syscall"
 )
 
@@ -89,9 +93,10 @@ func launchShell(env []string, shell string) {
 }
 
 func launchX11(env []string, shell string, startxPath string) {
-	syscall.Exec(shell, []string{shell, "-c", "startx", startxPath}, env)
+	// Run all x11 xsession.d scripts
+	syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/xsetup.sh \"startx" + startxPath + "\""}, env)
 }
 
 func launchWayland(env []string, shell string, launchPath string) {
-	syscall.Exec(shell, []string{shell, "-c", launchPath}, env)
+	syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/wsetup.sh \"" + shell + " -c " + launchPath + "\""}, env)
 }

@@ -7,6 +7,7 @@ package login
 // #include <grp.h>
 // #include <security/pam_appl.h>
 // #include <login.h>
+// #include <utils.h>
 import "C"
 import (
 	"aporia/ansi"
@@ -77,6 +78,8 @@ func Authenticate(username string, password string, session Session) error {
 	}
 
 	usedPam = true
+
+	C.set_pam_env(handle)
 
 	launch(session, handle, pwnam)
 

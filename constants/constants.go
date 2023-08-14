@@ -5,6 +5,7 @@ const AsciiFileExt = "ascii"
 
 const PamService = "aporia"
 const PamConfDir = "/etc/pam.d"
+const XSessionsPath = "/etc/X11/Xsession.d"
 
 // Ascii art used when there is no config
 const DefaultAsciiArt = ``
