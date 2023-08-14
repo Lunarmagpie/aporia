@@ -89,7 +89,7 @@ func launchShell(env []string, shell string) {
 }
 
 func launchX11(env []string, shell string, filepath string) {
-	syscall.Exec(shell, []string{shell, "-c", "startx " + filepath}, env)
+	syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/startx.sh " + filepath}, env)
 }
 
 func launchWayland(env []string, shell string, filepath string) {

@@ -6,10 +6,8 @@ if
   cp extra/aporia.pam /etc/pam.d/aporia &&
   cp extra/aporia.service /etc/systemd/system/aporia.service &&
   (mkdir /etc/aporia || true) &&
-  cp extra/xsetup.sh /etc/aporia/xsetup.sh &&
-  cp extra/wsetup.sh /etc/aporia/wsetup.sh &&
-  chmod +x /etc/aporia/xsetup.sh &&
-  chmod +x /etc/aporia/wsetup.sh &&
+  cp extra/startx.sh /etc/aporia/startx.sh &&
+  chmod +x /etc/aporia/startx.sh &&
   cp aporia /bin/aporia
 then
   set +e
