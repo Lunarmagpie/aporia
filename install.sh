@@ -2,9 +2,9 @@
 set -e
 
 if
-  go build
-  cp extra/aporia.pam /etc/pam.d/aporia
-  cp extra/aporia.service /etc/systemd/system/aporia.service
+  go build &&
+  cp extra/aporia.pam /etc/pam.d/aporia &&
+  cp extra/aporia.service /etc/systemd/system/aporia.service &&
   cp aporia /bin/aporia
 then
   set +e
