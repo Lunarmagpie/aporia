@@ -8,8 +8,6 @@ package login
 import "C"
 import (
 	"aporia/ansi"
-	"os"
-	"strings"
 	"syscall"
 )
 
@@ -55,11 +53,6 @@ func ShellSession() Session {
 func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	pid := C.fork()
 
-	getCommand := func() string {
-		command, _ := os.ReadFile(*session.filepath)
-		return strings.TrimSpace(string(command))
-	}
-
 	if pid == 0 {
 		// Child
 		becomeUser(pwnam)
@@ -70,9 +63,9 @@ func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_pa
 		case shellSession:
 			launchShell(env, shell)
 		case x11Session:
-			launchX11(env, shell, getCommand())
+			launchX11(env, shell, *session.filepath)
 		case waylandSession:
-			launchWayland(env, shell, getCommand())
+			launchWayland(env, shell, *session.filepath)
 		}
 
 	}
@@ -95,12 +88,10 @@ func launchShell(env []string, shell string) {
 	syscall.Exec(shell, []string{shell}, env)
 }
 
-func launchX11(env []string, shell string, command string) {
-	// command = "/etc/aporia/xsetup.sh " + command
-	// syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/xsetup.sh \"startx" + startxPath + "\""}, env)
+func launchX11(env []string, shell string, filepath string) {
+	syscall.Exec(shell, []string{shell, "-c", "startx " + filepath}, env)
 }
 
-func launchWayland(env []string, shell string, command string) {
-	command = "/etc/aporia/wsetup.sh " + command
-	syscall.Exec(shell, []string{shell, "-c", command}, env)
+func launchWayland(env []string, shell string, filepath string) {
+	syscall.Exec(shell, []string{shell, "-c", filepath}, env)
 }
