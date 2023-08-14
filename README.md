@@ -32,7 +32,7 @@ The file is used as your xinitrc.
 
 ```sh
 #!/bin/bash
-exec dbus-run-session -- bspwm
+exec bspwm
 ```
 
 #### Adding a hyprland environment (wayland)
