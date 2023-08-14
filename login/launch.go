@@ -8,6 +8,8 @@ package login
 import "C"
 import (
 	"aporia/ansi"
+	"os"
+	"strings"
 	"syscall"
 )
 
@@ -20,38 +22,43 @@ const (
 )
 
 type Session struct {
-	Name string
+	Name        string
 	sessionType SessionType
 	// The filepath to the launcher file for the session, or null if its a shell session.
 	filepath *string
 }
 
 func X11Session(name string, startxPath string) Session {
-	return Session {
-		Name: name,
+	return Session{
+		Name:        name,
 		sessionType: x11Session,
-		filepath: &startxPath,
+		filepath:    &startxPath,
 	}
 }
 
 func WaylandSession(name string, filepath string) Session {
-	return Session {
-		Name: name,
+	return Session{
+		Name:        name,
 		sessionType: waylandSession,
-		filepath: &filepath,
+		filepath:    &filepath,
 	}
 }
 
 func ShellSession() Session {
-	return Session {
-		Name: "shell",
+	return Session{
+		Name:        "shell",
 		sessionType: shellSession,
-		filepath: nil,
+		filepath:    nil,
 	}
 }
 
 func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	pid := C.fork()
+
+	getCommand := func() string {
+		command, _ := os.ReadFile(*session.filepath)
+		return strings.TrimSpace(string(command))
+	}
 
 	if pid == 0 {
 		// Child
@@ -63,9 +70,9 @@ func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_pa
 		case shellSession:
 			launchShell(env, shell)
 		case x11Session:
-			launchX11(env, shell, *session.filepath)
+			launchX11(env, shell, getCommand())
 		case waylandSession:
-			launchWayland(env, shell, *session.filepath)
+			launchWayland(env, shell, getCommand())
 		}
 
 	}
@@ -88,11 +95,12 @@ func launchShell(env []string, shell string) {
 	syscall.Exec(shell, []string{shell}, env)
 }
 
-func launchX11(env []string, shell string, startxPath string) {
+func launchX11(env []string, shell string, command string) {
 	// Run all x11 xsession.d scripts
-	syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/xsetup.sh \"startx" + startxPath + "\""}, env)
+	// syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/xsetup.sh \"startx" + startxPath + "\""}, env)
 }
 
-func launchWayland(env []string, shell string, launchPath string) {
-	syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/wsetup.sh \"" + shell + " -c " + launchPath + "\""}, env)
+func launchWayland(env []string, shell string, command string) {
+	command = "/etc/aporia/wsetup.sh " + command
+	syscall.Exec(shell, []string{shell, "-c", command}, env)
 }

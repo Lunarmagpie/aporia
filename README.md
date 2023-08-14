@@ -28,19 +28,17 @@ Sessions are added as scripts.
 
 #### Adding a bspwm environment (X11)
 Create a file called `bspwm.x11` and put it in the `/etc/aporia` directory.
-This file is run as an argument to `startx`.
+The text in this file is run as a command to start your window manager.
 
 ```sh
-#!/bin/bash
-exec bspwm
+bspwm
 ```
 
 #### Adding a hyprland environment (wayland)
 Create a file called `hyprland.wayland` and put it in the `/etc/aporia` directory.
 
 ```sh
-#!/bin/bash
-exec Hyprland
+Hyprland
 ```
 
 ## Keybinds
