@@ -6,7 +6,10 @@ package login
 // #include <sys/wait.h>
 // #include <utmp.h>
 import "C"
-import "syscall"
+import (
+	"aporia/ansi"
+	"syscall"
+)
 
 type SessionType int
 
@@ -76,6 +79,9 @@ func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_pa
 
 	closePamSession(pam_handle)
 	removeUtmpEntry(&utmpEntry)
+
+	// Clear the screen to prevent X11 weirdities
+	ansi.Clear()
 }
 
 func launchShell(env []string, shell string) {
