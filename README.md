@@ -28,17 +28,20 @@ Sessions are added as scripts.
 
 #### Adding a bspwm environment (X11)
 Create a file called `bspwm.x11` and put it in the `/etc/aporia` directory.
-The text in this file is run as a command to start your window manager.
+The file is used as your xinitrc.
 
 ```sh
-bspwm
+#!/bin/bash
+exec dbus-run-session -- bspwm
 ```
 
 #### Adding a hyprland environment (wayland)
 Create a file called `hyprland.wayland` and put it in the `/etc/aporia` directory.
+This file is run to start your window manager.
 
 ```sh
-Hyprland
+#!/bin/bash
+exec Hyprland
 ```
 
 ## Keybinds
