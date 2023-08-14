@@ -15,6 +15,8 @@ import (
 	"unsafe"
 )
 
+var usedPam = false
+
 func Authenticate(username string, password string, session Session) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
@@ -55,7 +57,12 @@ func Authenticate(username string, password string, session Session) error {
 	ansi.Clear()
 
 	{
-		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
+		var cred C.int
+		cred = C.PAM_ESTABLISH_CRED
+		if usedPam {
+			cred = C.PAM_REINITIALIZE_CRED
+		}
+		ret := C.pam_setcred(handle, cred)
 		if ret != C.PAM_SUCCESS {
 			return errors.New("pam_setcred")
 		}
@@ -68,6 +75,8 @@ func Authenticate(username string, password string, session Session) error {
 			return errors.New("pam_open_session " + pamReason(ret))
 		}
 	}
+
+	usedPam = true
 
 	launch(session, handle, pwnam)
 
