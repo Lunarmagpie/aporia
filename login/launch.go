@@ -57,7 +57,7 @@ func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_pa
 		// Child
 		becomeUser(pwnam)
 		shell := C.GoString(pwnam.pw_shell)
-		env := makeEnv(pam_handle, pwnam)
+		env := makeEnv(pam_handle, pwnam, session.Name)
 
 		switch session.sessionType {
 		case shellSession:

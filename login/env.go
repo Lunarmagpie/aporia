@@ -11,6 +11,7 @@ package login
 import "C"
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"unsafe"
@@ -32,13 +33,13 @@ func becomeUser(pwnam *C.struct_passwd) error {
 	return nil
 }
 
-func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) []string {
+func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopName string) []string {
 	homeDir := C.GoString(pwnam.pw_dir)
 
-	env := []string{}
+	envMap := map[string]string{}
 
 	setEnv := func(k string, v string) {
-		env = append(env, k+"="+v)
+		envMap[k] = v
 	}
 
 	setEnv("HOME", homeDir)
@@ -56,6 +57,14 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) []string {
 
 	setEnv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin")
 
+	// XDG Variables
+	user := fmt.Sprint("/run/user/", pwnam.pw_uid)
+	setEnv("XDG_RUNTIME_DIR", user)
+	setEnv("XDG_SESSION_CLASS", "user")
+	setEnv("XDG_SESSION_ID", "1")
+	setEnv("XDG_SESSION_DESKTOP", desktopName)
+	setEnv("XDG_SEAT", "seat0")
+
 	pamEnvList := C.pam_getenvlist(pam_handle)
 
 	for _, v := range cArrayToGoSlice(pamEnvList) {
@@ -65,7 +74,13 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) []string {
 
 	C.free(unsafe.Pointer(pamEnvList))
 
-	return env
+	envList := []string{}
+
+	for k, v := range envMap {
+		envList = append(envList, k+"="+v)
+	}
+
+	return envList
 }
 
 func cArrayToGoSlice(arr **C.char) []string {
