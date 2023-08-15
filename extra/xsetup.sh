@@ -20,6 +20,9 @@ ALTUSERXSESSION=$HOME/.Xsession
 
 if [ -d "$xsessionddir" ]; then
     for i in `ls $xsessionddir`; do
+        if [ "$i" = "99x11-common_start" ]; then
+          continue
+        fi
         script="$xsessionddir/$i"
         echo "Loading X session script $script"
         if [ -r "$script"  -a -f "$script" ] && expr "$i" : '^[[:alnum:]_-]\+$' > /dev/null; then
