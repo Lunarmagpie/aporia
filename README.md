@@ -2,7 +2,7 @@
 
 Aporia is a login manager that displays ascii art. It supports x11 and wayland sessions.
 
-<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/3e91ac76-df08-49ea-87f5-98e4c3105058" alt="drawing" width="700"/>
+<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/36184c2a-9fc8-45ce-8dd2-afa6b721fc24" alt="drawing" width="700"/>
 
 Only systemd is supported.
 
