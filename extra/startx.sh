@@ -169,12 +169,6 @@ if [ x"$enable_xauth" = x1 ] ; then
 
     mcookie=`/usr/bin/mcookie`
 
-
-
-
-
-
-
     if test x"$mcookie" = x; then
         echo "Couldn't create cookie"
         exit 1
@@ -188,11 +182,7 @@ if [ x"$enable_xauth" = x1 ] ; then
 add :$dummy . $mcookie
 EOF
 
-
-
-
     serverargs=${serverargs}" -auth "${xserverauthfile}
-
 
     # now add the same credentials to the client authority file
     # if '$displayname' already exists do not overwrite it as another
