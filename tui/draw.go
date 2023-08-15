@@ -23,7 +23,7 @@ func (self *Tui) draw() error {
 		ansi.Clear()
 		self.shouldBeRedrawn = false
 		ansi.MoveCursor(0, 0)
-		self.asciiArt.draw(self.TermSize)
+		draw(self.asciiArt, self.TermSize)
 		ansi.MoveCursor(0, 0)
 		self.drawBox()
 	}

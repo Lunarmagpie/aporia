@@ -7,67 +7,29 @@ package login
 // #include <utmp.h>
 import "C"
 import (
-	_ "aporia/ansi"
+	"aporia/config"
 	"aporia/constants"
 	"os"
 	"syscall"
 )
 
-type SessionType string
 
-const (
-	shellSession   = "tty"
-	x11Session     = "x11"
-	waylandSession = "wayland"
-)
-
-type Session struct {
-	Name        string
-	sessionType SessionType
-	// The filepath to the launcher file for the session, or null if its a shell session.
-	filepath *string
-}
-
-func X11Session(name string, startxPath string) Session {
-	return Session{
-		Name:        name,
-		sessionType: x11Session,
-		filepath:    &startxPath,
-	}
-}
-
-func WaylandSession(name string, filepath string) Session {
-	return Session{
-		Name:        name,
-		sessionType: waylandSession,
-		filepath:    &filepath,
-	}
-}
-
-func ShellSession() Session {
-	return Session{
-		Name:        "shell",
-		sessionType: shellSession,
-		filepath:    nil,
-	}
-}
-
-func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
+func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	pid := C.fork()
 
 	if pid == 0 {
 		// Child
 		becomeUser(pwnam)
 		shell := C.GoString(pwnam.pw_shell)
-		env := makeEnv(pam_handle, pwnam, session.Name, string(session.sessionType))
+		env := makeEnv(pam_handle, pwnam, session.Name, string(session.SessionType))
 
-		switch session.sessionType {
-		case shellSession:
+		switch session.SessionType {
+		case config.ShellSession:
 			launchShell(env, shell)
-		case x11Session:
-			launchX11(env, shell, *session.filepath)
-		case waylandSession:
-			launchWayland(env, shell, *session.filepath)
+		case config.X11Session:
+			launchX11(env, shell, *session.Filepath)
+		case config.WaylandSession:
+			launchWayland(env, shell, *session.Filepath)
 		}
 
 	}

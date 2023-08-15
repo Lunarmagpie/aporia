@@ -13,12 +13,13 @@ import "C"
 import (
 	"aporia/ansi"
 	"aporia/constants"
+	"aporia/config"
 	"errors"
 	"fmt"
 	"unsafe"
 )
 
-func Authenticate(username string, password string, session Session) error {
+func Authenticate(username string, password string, session config.Session) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
 	serviceStr := C.CString(constants.PamService)
@@ -80,6 +81,9 @@ func Authenticate(username string, password string, session Session) error {
 
 	C.pam_misc_setenv(handle, C.CString("XDG_RUNTIME_DIR"), runtimeDir, 0)
 	C.pam_misc_setenv(handle, C.CString("DBUS_SESSION_BUS_ADDRESS"), loc, 0)
+
+	// Login was successful, so lets save the choices for next time.
+	config.SaveSession(session.Name, username)
 
 	launch(session, handle, pwnam)
 

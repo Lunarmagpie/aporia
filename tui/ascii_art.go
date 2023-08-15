@@ -1,68 +1,34 @@
 package tui
 
 import (
+	"aporia/config"
 	"fmt"
 	"strings"
-	"unicode/utf8"
 )
 
 /*
 A struct that makes loading and printing ascii art easy.
 */
-type AsciiArt struct {
-	strLines []string
-	lines    int
-	cols     int
 
-	messages []string
-	origin Origin
-}
+func draw(self config.AsciiArt, termSize TermSize) {
+	linesSkip := maxInt((self.Lines-termSize.Lines)/2, 0)
+	colsSkip := maxInt((self.Cols-termSize.Cols)/2, 0)
 
-type Origin string
-
-const (
-	Center Origin = "center"
-)
-
-func NewAsciiArt(art string, messages []string, origin Origin) AsciiArt {
-	lines := strings.Split(art, "\n")
-
-	longestLine := utf8.RuneCountInString(lines[0])
-
-	for _, line := range lines[1:] {
-		if len(line) > longestLine {
-			longestLine = utf8.RuneCountInString(line)
-		}
-	}
-
-	return AsciiArt{
-		strLines: lines,
-		cols:     longestLine,
-		lines:    len(lines),
-		messages: messages,
-		origin: origin,
-	}
-}
-
-func (self *AsciiArt) draw(termSize TermSize) {
-	linesSkip := maxInt((self.lines-termSize.Lines)/2, 0)
-	colsSkip := maxInt((self.cols-termSize.Cols)/2, 0)
-
-	startLine := maxInt((termSize.Lines-self.lines)/2, 0)
-	startCol := maxInt((termSize.Cols-self.cols)/2, 0)
+	startLine := maxInt((termSize.Lines-self.Lines)/2, 0)
+	startCol := maxInt((termSize.Cols-self.Cols)/2, 0)
 
 	for i := 0; i < startLine; i++ {
 		fmt.Print("\n\r")
 	}
 
-	for i := 0; i < termSize.Lines && i+linesSkip < self.lines; i++ {
-		if colsSkip >= len(self.strLines[i]) {
+	for i := 0; i < termSize.Lines && i+linesSkip < self.Lines; i++ {
+		if colsSkip >= len(self.StrLines[i]) {
 			continue
 		}
 		if i != 0 {
 			fmt.Print("\n\r")
 		}
-		maxSize := minInt(termSize.Cols + colsSkip, len(self.strLines[i+linesSkip]))
-		fmt.Print(strings.Repeat(" ", startCol), self.strLines[i+linesSkip][colsSkip:maxSize])
+		maxSize := minInt(termSize.Cols+colsSkip, len(self.StrLines[i+linesSkip]))
+		fmt.Print(strings.Repeat(" ", startCol), self.StrLines[i+linesSkip][colsSkip:maxSize])
 	}
 }

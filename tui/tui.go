@@ -6,22 +6,23 @@ import (
 	"os"
 	"reflect"
 
+	"aporia/config"
 	"aporia/login"
 
 	"golang.org/x/term"
 )
 
 type Tui struct {
+	config           config.Config
 	TermSize         TermSize
 	position         int
 	message          string
 	fields           []field
-	asciiArt         AsciiArt
+	asciiArt         config.AsciiArt
 	shouldBeRedrawn  bool
 	lastDrawnMessage string
 	loggedIn         bool
 	oldState         *term.State
-	sessions         []login.Session
 }
 
 type TermSize struct {
@@ -30,7 +31,7 @@ type TermSize struct {
 }
 
 // Create a new UI. Clears the terminal.
-func New(sessions []login.Session) (Tui, error) {
+func New(config config.Config) (Tui, error) {
 	cols, lines, err := term.GetSize(0)
 
 	if err != nil {
@@ -43,19 +44,20 @@ func New(sessions []login.Session) (Tui, error) {
 		return Tui{}, err
 	}
 
-	return Tui{
+	self := Tui{
 		TermSize: TermSize{
 			Lines: lines,
 			Cols:  cols,
 		},
 		position:        0,
 		message:         "SATA ANDAGI",
-		fields:          getFields(sessions),
 		shouldBeRedrawn: true,
 		loggedIn:        false,
 		oldState:        state,
-		sessions:        sessions,
-	}, nil
+		config:          config,
+	}
+	self.fields = self.getFields()
+	return self, nil
 }
 
 func (self *Tui) Start(charReader CharReader) {
@@ -78,32 +80,55 @@ func (self *Tui) Start(charReader CharReader) {
 	}
 }
 
-func (self *Tui) SetAsciiArt(asciiArt AsciiArt) {
+func (self *Tui) SetAsciiArt(asciiArt config.AsciiArt) {
 	self.asciiArt = asciiArt
-	self.message = asciiArt.messages[rand.Intn(len(asciiArt.messages))]
+	self.message = asciiArt.Messages[rand.Intn(len(asciiArt.Messages))]
 }
 
 // Create the list of fields
-func getFields(sessions []login.Session) []field {
+func (self *Tui) getFields() []field {
 	sessionNames := []string{}
-	for _, session := range sessions {
+	lastSessionIndex := -1
+
+	for i, session := range self.config.Sessions {
 		sessionNames = append(sessionNames, session.Name)
+		if self.config.LastSession != nil && self.config.LastSession.SessionName == session.Name {
+			lastSessionIndex = i
+		}
+	}
+
+	wmInput := newPicker(sessionNames)
+	userInput := newInput("username", false)
+	passwdInput := newInput("password", true)
+
+	if lastSessionIndex > -1 {
+		wmInput.selected = lastSessionIndex
+		self.position = 1
+	}
+	if self.config.LastSession != nil {
+		userInput.contents = self.config.LastSession.User
+		self.position = 2
 	}
 
 	return []field{
-		newPicker(sessionNames),
-		newInput("username", false),
-		newInput("password", true),
+		wmInput,
+		userInput,
+		passwdInput,
 	}
 }
 
 // Functions that need to be called to get the terminal into
 // The proper state.
 func (self *Tui) reset() {
+	term.MakeRaw(int(os.Stdin.Fd()))
 	self.loggedIn = false
 	self.position = 0
+	self.fields = self.getFields()
+}
+
+func (self *Tui) failedPasswordReset() {
 	term.MakeRaw(int(os.Stdin.Fd()))
-	self.fields = getFields(self.sessions)
+	self.fields[2] = newInput("password", true)
 }
 
 func (self *Tui) NextPosition() {
@@ -158,8 +183,8 @@ func (self *Tui) login() {
 
 	term.Restore(int(os.Stdin.Fd()), self.oldState)
 
-	var session login.Session
-	for _, this_session := range self.sessions {
+	var session config.Session
+	for _, this_session := range self.config.Sessions {
 		if this_session.Name == sessionName {
 			session = this_session
 			break
@@ -170,11 +195,12 @@ func (self *Tui) login() {
 
 	// We reset the terminal no matter if the login was right or wrong.
 	// This way wrong logins make the user re-enter the username and password.
-	self.reset()
 
 	if err != nil {
+		self.failedPasswordReset()
 		self.message = fmt.Sprint(err)
 	} else {
+		self.reset()
 		self.message = "Success!"
 		self.loggedIn = true
 	}

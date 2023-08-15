@@ -1,29 +1,29 @@
 package main
 
 import (
+	"aporia/config"
+	"aporia/tui"
 	"math/rand"
 	"runtime"
 	"time"
-
-	"aporia/tui"
 )
 
 func main() {
 	rand.Seed(time.Now().Unix())
 	runtime.LockOSThread()
 
-	config, err := loadConfig()
+	configObj, err := config.LoadConfig()
 	if err != nil {
-		config_ := defaultConfig()
-		config = &config_
+		config_ := config.DefaultConfig()
+		configObj = &config_
 	}
 
-	ui, _ := tui.New(config.sessions)
+	ui, _ := tui.New(*configObj)
 
 	charReader := tui.ReadTermChars()
 
 	for {
-		ui.SetAsciiArt(config.randomAscii())
+		ui.SetAsciiArt(configObj.RandomAscii())
 		ui.Start(charReader)
 	}
 }
