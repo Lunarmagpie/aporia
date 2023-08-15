@@ -7,6 +7,7 @@ package login
 // #include <utmp.h>
 import "C"
 import (
+	"aporia/ansi"
 	"aporia/config"
 	"aporia/constants"
 	"os"
@@ -45,7 +46,7 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 	removeUtmpEntry(&utmpEntry)
 
 	// Clear the screen to prevent X11 weirdities
-	// ansi.Clear()
+	ansi.Clear()
 }
 
 func launchShell(env []string, shell string) {
