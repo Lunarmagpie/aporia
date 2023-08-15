@@ -18,8 +18,6 @@ import (
 	"unsafe"
 )
 
-var usedPam = false
-
 func Authenticate(username string, password string, session Session) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
@@ -60,12 +58,7 @@ func Authenticate(username string, password string, session Session) error {
 	ansi.Clear()
 
 	{
-		var cred C.int
-		cred = C.PAM_ESTABLISH_CRED
-		if usedPam {
-			cred = C.PAM_REINITIALIZE_CRED
-		}
-		ret := C.pam_setcred(handle, cred)
+		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
 		if ret != C.PAM_SUCCESS {
 			return errors.New("pam_setcred")
 		}
@@ -79,10 +72,9 @@ func Authenticate(username string, password string, session Session) error {
 		}
 	}
 
-	usedPam = true
-
 	C.set_pam_env(handle)
 
+	// DBUS variables need to be set for wayland to work properly
 	loc := C.CString(fmt.Sprint("unix:path=/run/user/", pwnam.pw_uid, "/bus"))
 	runtimeDir := C.CString(fmt.Sprint("/run/user/", pwnam.pw_uid))
 

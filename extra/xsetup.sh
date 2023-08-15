@@ -7,6 +7,8 @@
 
 # Note that the respective logout scripts are not sourced.
 
+# Aporia uses a modified version of this file to launch the user's startx script.
+
 # Load Xsession scripts
 # OPTIONFILE, USERXSESSION, USERXSESSIONRC and ALTUSERXSESSION are required
 # by the scripts to work
@@ -39,3 +41,7 @@ fi
 if [ -f "$USERXSESSION" ]; then
   . "$USERXSESSION"
 fi
+
+echo "Aporia startx path: $APORIA_STARTX_PATH"
+
+exec $APORIA_STARTX_PATH

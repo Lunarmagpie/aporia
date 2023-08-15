@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"unsafe"
 )
@@ -48,8 +47,7 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 	setEnv("SHELL", C.GoString(pwnam.pw_shell))
 	setEnv("USER", C.GoString(pwnam.pw_name))
 	setEnv("LOGNAME", C.GoString(pwnam.pw_name))
-	setEnv("XAUTHORITY", filepath.Join(homeDir, ".Xauthority"))
-	
+
 	termValue, found := os.LookupEnv("TERM")
 	if found {
 		setEnv("TERM", termValue)

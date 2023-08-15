@@ -215,8 +215,6 @@ EOF
 fi
 
 
-
-
 xinit "$client" $clientargs -- "$server" $display $serverargs
 
 retval=$?
@@ -231,16 +229,9 @@ if [ x"$enable_xauth" = x1 ] ; then
 fi
 
 
-
-
-
 if command -v deallocvt > /dev/null 2>&1; then
     deallocvt
 fi
-
-
-
-
 
 
 exit $retval

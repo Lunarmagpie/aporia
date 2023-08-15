@@ -14,7 +14,7 @@ Install the dependencies:
 
 Run the install.sh script as root.
 ```sh
-# ./install.sh
+$ sudo -E ./install.sh
 ```
 
 You have to disable whatever display manager is running as well.

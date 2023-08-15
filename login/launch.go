@@ -7,7 +7,9 @@ package login
 // #include <utmp.h>
 import "C"
 import (
-	"aporia/ansi"
+	_ "aporia/ansi"
+	"aporia/constants"
+	"os"
 	"syscall"
 )
 
@@ -81,17 +83,21 @@ func launch(session Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_pa
 	removeUtmpEntry(&utmpEntry)
 
 	// Clear the screen to prevent X11 weirdities
-	ansi.Clear()
+	// ansi.Clear()
 }
 
 func launchShell(env []string, shell string) {
 	syscall.Exec(shell, []string{shell}, env)
+	os.Exit(0)
 }
 
 func launchX11(env []string, shell string, filepath string) {
-	syscall.Exec(shell, []string{shell, "-c", "/etc/aporia/startx.sh " + filepath}, env)
+	env = append(env, constants.AporiaStartxPath+"="+filepath)
+	syscall.Exec(shell, []string{shell, "-c", constants.X11StartupCommand}, env)
+	os.Exit(0)
 }
 
 func launchWayland(env []string, shell string, filepath string) {
 	syscall.Exec(shell, []string{shell, "-c", filepath}, env)
+	os.Exit(0)
 }
