@@ -10,10 +10,13 @@ import (
 )
 
 func desktopCrawl() []Session {
-	return append(desktopCrawlPath(constants.X11SessionsDir), desktopCrawlPath(constants.WaylandSessionsDir)...)
+	return append(
+		desktopCrawlPath(constants.X11SessionsDir, X11Session),
+		desktopCrawlPath(constants.WaylandSessionsDir, WaylandSession)...,
+	)
 }
 
-func desktopCrawlPath(path string) []Session {
+func desktopCrawlPath(path string, sessionType SessionType) []Session {
 	entries, err := os.ReadDir(path)
 
 	if err != nil {
@@ -50,7 +53,6 @@ func desktopCrawlPath(path string) []Session {
 
 			fmt.Println(lClean)
 
-
 			if lClean == "Name" {
 				name = &rClean
 			}
@@ -66,6 +68,7 @@ func desktopCrawlPath(path string) []Session {
 		desktops = append(desktops, Session{
 			Name: *name,
 			Exec: exec,
+			SessionType: sessionType,
 		})
 	}
 
