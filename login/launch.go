@@ -28,11 +28,10 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 		case config.ShellSession:
 			launchShell(env, shell)
 		case config.X11Session:
-			launchX11(env, shell, *session.Filepath)
+			launchX11(env, shell, session.Exec, session.Filepath)
 		case config.WaylandSession:
-			launchWayland(env, shell, *session.Filepath)
+			launchWayland(env, shell, session.Exec, session.Filepath)
 		}
-
 	}
 
 	// Parent
@@ -54,13 +53,21 @@ func launchShell(env []string, shell string) {
 	os.Exit(0)
 }
 
-func launchX11(env []string, shell string, filepath string) {
-	env = append(env, constants.AporiaStartxPath+"="+filepath)
+func launchX11(env []string, shell string, exec *string, filepath *string) {
+	if filepath != nil {
+		env = append(env, constants.AporiaStartxPath+"="+*filepath)
+	} else {
+		env = append(env, constants.AporiaExec+"="+*exec)
+	}
 	syscall.Exec(shell, []string{shell, "-c", constants.X11StartupCommand}, env)
 	os.Exit(0)
 }
 
-func launchWayland(env []string, shell string, filepath string) {
-	syscall.Exec(shell, []string{shell, "-c", filepath}, env)
+func launchWayland(env []string, shell string, exec *string, filepath *string) {
+	if filepath != nil {
+		syscall.Exec(shell, []string{shell, "-c", *filepath}, env)
+	} else {
+		syscall.Exec(shell, []string{shell, "-c", *exec}, env)
+	}
 	os.Exit(0)
 }

@@ -46,5 +46,10 @@ if [ -f "$USERXSESSION" ]; then
 fi
 
 echo "Aporia startx path: $APORIA_STARTX_PATH"
+echo "Aporia exec: $APORIA_EXEC"
 
-exec $APORIA_STARTX_PATH
+if [ -v APORIA_EXEC ]; then
+  exec $APORIA_EXEC
+else
+  exec $APORIA_STARTX_PATH
+fi

@@ -32,6 +32,8 @@ type Session struct {
 	SessionType SessionType
 	// The filepath to the launcher file for the session, or null if its a shell session.
 	Filepath *string
+	// Or there is an exec function to be called.
+	Exec *string
 }
 
 func newShellSession() Session {
@@ -206,6 +208,8 @@ func LoadConfig() (*Config, error) {
 	}
 
 	wg.Wait()
+
+	sessions = append(sessions, desktopCrawl()...)
 
 	session, _ := loadLastSession()
 
