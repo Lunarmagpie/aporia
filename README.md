@@ -23,8 +23,10 @@ You have to disable whatever display manager is running as well.
 To have ascii art you must put a file in `/etc/aporia/NAME.ascii`. Name can be whatever you want. It doesn't matter.
 The file must follow the format of the example file `examples/luna.ascii`. Be careful not to make an error!
 
-### Adding Desktop Environments
-Sessions are added as scripts.
+Aporia will detect desktop environments automatically.
+
+### Adding Custom Desktop Environments
+Custom desktop environments are added as scripts.
 
 #### Adding a bspwm environment (X11)
 Create a file called `bspwm.x11` and put it in the `/etc/aporia` directory.
