@@ -12,7 +12,7 @@ const WaylandSessionsDir = "/usr/share/wayland-sessions"
 
 const AporiaStartxPath = "APORIA_STARTX_PATH"
 const AporiaExec = "APORIA_EXEC"
-const X11StartupCommand = "/etc/aporia/.scripts/startx.sh /etc/aporia/.scripts/xsetup.sh"
+const X11StartupCommand = "exec /bin/bash --login /etc/aporia/.scripts/startx.sh /etc/aporia/.scripts/xsetup.sh"
 
 // Ascii art used when there is no config
 const DefaultAsciiArt = ``
