@@ -17,6 +17,7 @@ type Config struct {
 	AsciiArts   []AsciiArt
 	Sessions    []Session
 	LastSession *LastSession
+	ascii       *string
 }
 
 type SessionType string
@@ -78,9 +79,11 @@ type AsciiArt struct {
 
 	Messages []string
 	Origin   Origin
+
+	name string
 }
 
-func newAsciiArt(art string, messages []string, origin Origin) AsciiArt {
+func newAsciiArt(name string, art string, messages []string, origin Origin) AsciiArt {
 	lines := strings.Split(art, "\n")
 
 	longestLine := utf8.RuneCountInString(lines[0])
@@ -97,11 +100,12 @@ func newAsciiArt(art string, messages []string, origin Origin) AsciiArt {
 		Lines:    len(lines),
 		Messages: messages,
 		Origin:   origin,
+		name:     name,
 	}
 }
 
-func parseAsciiFile(filepath string) (*AsciiArt, error) {
-	contents, err := os.ReadFile(filepath)
+func parseAsciiFile(filename string) (*AsciiArt, error) {
+	contents, err := os.ReadFile(filepath.Join(constants.ConfigDir, filename))
 
 	if err != nil {
 		return nil, err
@@ -140,6 +144,7 @@ func parseAsciiFile(filepath string) (*AsciiArt, error) {
 	}
 
 	ascii := newAsciiArt(
+		strings.TrimRight(filename, "."+constants.AsciiFileExt),
 		strings.Join(asciiLines, "\n"),
 		messages,
 		origin,
@@ -172,6 +177,30 @@ func SaveSession(sessionName string, user string) {
 	os.WriteFile(constants.LastSessionFile, []byte(contents), 0644)
 }
 
+func parseConfigFile() *string {
+	filepath := filepath.Join(constants.ConfigDir, constants.ConfigFile)
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil
+	}
+
+	contentsStr := string(data)
+	contentsLines := strings.Split(contentsStr, "\n")
+
+	for _, line := range contentsLines {
+		line = strings.TrimSpace(line)
+		if line[0] == '#' {
+			continue
+		}
+
+		fields := strings.Fields(line)
+		if fields[0] == "ascii" {
+			return &fields[2]
+		}
+	}
+	return nil
+}
+
 func LoadConfig() (*Config, error) {
 	entries, err := os.ReadDir(constants.ConfigDir)
 	if err != nil {
@@ -188,7 +217,7 @@ func LoadConfig() (*Config, error) {
 		defer wg.Done()
 		filepath := filepath.Join(constants.ConfigDir, entry.Name())
 		if strings.HasSuffix(entry.Name(), "."+constants.AsciiFileExt) {
-			asciiFile, err := parseAsciiFile(filepath)
+			asciiFile, err := parseAsciiFile(entry.Name())
 			if err != nil {
 				return
 			}
@@ -217,6 +246,7 @@ func LoadConfig() (*Config, error) {
 		AsciiArts:   asciiArts,
 		Sessions:    append(sessions, newShellSession()),
 		LastSession: session,
+		ascii:       parseConfigFile(),
 	}, nil
 }
 
@@ -228,13 +258,23 @@ func DefaultConfig() Config {
 	}
 }
 
-func (self *Config) RandomAscii() AsciiArt {
+func (self *Config) GetAscii() AsciiArt {
+	if self.ascii != nil {
+		for _, file := range self.AsciiArts {
+			if file.name == *self.ascii {
+				return file
+			}
+		}
+	}
+
 	if len(self.AsciiArts) == 0 {
 		return newAsciiArt(
+			"This doesn't matter because it is never read.",
 			constants.DefaultAsciiArt,
 			constants.DefaultMessages(),
 			Center,
 		)
 	}
+
 	return self.AsciiArts[rand.Intn(len(self.AsciiArts))]
 }

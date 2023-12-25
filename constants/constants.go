@@ -1,6 +1,7 @@
 package constants
 
 const ConfigDir = "/etc/aporia/"
+const ConfigFile = "config"
 const AsciiFileExt = "ascii"
 const LastSessionFile = "/etc/aporia/.last-session"
 const PamService = "aporia"

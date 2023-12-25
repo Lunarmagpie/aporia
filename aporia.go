@@ -24,7 +24,7 @@ func main() {
 			configObj = &config_
 		}
 		ui, _ := tui.New(*configObj, *termState)
-		ui.SetAsciiArt(configObj.RandomAscii())
+		ui.SetAsciiArt(configObj.GetAscii())
 		ui.Start()
 	}
 }
