@@ -13,7 +13,6 @@ import (
 	"syscall"
 )
 
-
 func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd) {
 	pid := C.fork()
 
@@ -37,8 +36,9 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 	utmpEntry := C.struct_utmp{}
 	addUtmpEntry(&utmpEntry, pwnam, pid)
 
+	// Wait for all child processes to finish
 	var status C.int
-	C.waitpid(pid, &status, 0)
+	for C.waitpid(-1, &status, 0) > 0 {}
 
 	closePamSession(pam_handle)
 	removeUtmpEntry(&utmpEntry)
