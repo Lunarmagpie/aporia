@@ -114,7 +114,7 @@ func parseAsciiFile(filename string) (*AsciiArt, error) {
 	contentsStr := string(contents)
 	contentsLines := strings.Split(contentsStr, "\n")
 
-	messages := []string{"Login:"}
+	messages := []string{"Enter Credentials:"}
 	origin := Center
 
 	asciiLines := []string{}
@@ -144,7 +144,7 @@ func parseAsciiFile(filename string) (*AsciiArt, error) {
 	}
 
 	ascii := newAsciiArt(
-		strings.TrimRight(filename, "."+constants.AsciiFileExt),
+		strings.TrimSuffix(filename, "."+constants.AsciiFileExt),
 		strings.Join(asciiLines, "\n"),
 		messages,
 		origin,
@@ -259,21 +259,27 @@ func DefaultConfig() Config {
 }
 
 func (self *Config) GetAscii() AsciiArt {
-	if self.ascii != nil {
-		for _, file := range self.AsciiArts {
-			if file.name == *self.ascii {
-				return file
-			}
-		}
-	}
-
-	if len(self.AsciiArts) == 0 {
+	emptyAsciiArt := func() AsciiArt {
 		return newAsciiArt(
 			"This doesn't matter because it is never read.",
 			constants.DefaultAsciiArt,
 			constants.DefaultMessages(),
 			Center,
 		)
+	}
+	if self.ascii != nil {
+		for _, file := range self.AsciiArts {
+			fmt.Println(file.name)
+			if file.name == *self.ascii {
+				return file
+			}
+		}
+		os.Exit(0)
+		return emptyAsciiArt()
+	}
+
+	if len(self.AsciiArts) == 0 {
+		return emptyAsciiArt()
 	}
 
 	return self.AsciiArts[rand.Intn(len(self.AsciiArts))]

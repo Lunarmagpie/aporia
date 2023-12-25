@@ -50,7 +50,7 @@ func New(config config.Config, resetTo term.State) (Tui, error) {
 			Cols:  cols,
 		},
 		position:  0,
-		message:   "Enter Creds:",
+		message:   "This value should be set before being read.",
 		loggedIn:  false,
 		termState: resetTo,
 		config:    config,
