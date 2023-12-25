@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 
+	"aporia/ansi"
 	"aporia/config"
 	"aporia/login"
 
@@ -21,7 +22,7 @@ type Tui struct {
 	asciiArt         config.AsciiArt
 	lastDrawnMessage string
 	loggedIn         bool
-	termState        *term.State
+	termState        term.State
 }
 
 type TermSize struct {
@@ -30,14 +31,14 @@ type TermSize struct {
 }
 
 // Create a new UI. Clears the terminal.
-func New(config config.Config) (Tui, error) {
+func New(config config.Config, resetTo term.State) (Tui, error) {
+	term.Restore(int(os.Stdin.Fd()), &resetTo)
+	ansi.Clear()
 	cols, lines, err := term.GetSize(0)
 
 	if err != nil {
 		return Tui{}, err
 	}
-
-	state, err := term.GetState(int(os.Stdin.Fd()))
 
 	if err != nil {
 		return Tui{}, err
@@ -51,17 +52,18 @@ func New(config config.Config) (Tui, error) {
 		position:  0,
 		message:   "Enter Creds:",
 		loggedIn:  false,
-		termState: state,
+		termState: resetTo,
 		config:    config,
 	}
 	self.fields = self.getFields()
 	return self, nil
 }
 
-func (self *Tui) Start(charReader CharReader) {
+func (self *Tui) Start() {
 	self.setupDraw()
 	self.draw()
-	self.termState, _ = term.MakeRaw(int(os.Stdin.Fd()))
+	_, _ = term.MakeRaw(int(os.Stdin.Fd()))
+	charReader := ReadTermChars()
 
 	for {
 		symbol, err := charReader()
@@ -177,7 +179,7 @@ func (self *Tui) login() {
 
 	self.message = "Authenticating..."
 	self.draw()
-	term.Restore(int(os.Stdin.Fd()), self.termState)
+	term.Restore(int(os.Stdin.Fd()), &self.termState)
 	err := login.Authenticate(username, password, session)
 
 	if err != nil {
@@ -186,7 +188,7 @@ func (self *Tui) login() {
 		self.message = fmt.Sprint(err)
 		// Only reset the state if the TUI isn't being discarded, this is so
 		// we can restore to a proper state in our next tui.
-		self.termState, _ = term.MakeRaw(int(os.Stdin.Fd()))
+		_, _ = term.MakeRaw(int(os.Stdin.Fd()))
 	} else {
 		self.message = "Success!"
 		self.loggedIn = true
