@@ -54,10 +54,6 @@ Aporia supports basics keybinds.
 - <kbd>Enter</kbd>: Confirm
 - <kbd>Tab</kbd>: Next Line
 
-## Known Issues
-
-- There is a bug where sometimes my x11 window manager doesn't start. I have no idea what the cause for this is...
-
 ## FAQ
 <details>
 <summary>How do I make the font size in my TTY smaller?</summary><br>
