@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	rand.Seed(time.Now().Unix())
+	rand.New(rand.NewSource(time.Now().Unix()))
 	runtime.LockOSThread()
 
 	configObj, err := config.LoadConfig()
