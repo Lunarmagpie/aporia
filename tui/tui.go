@@ -19,10 +19,9 @@ type Tui struct {
 	message          string
 	fields           []field
 	asciiArt         config.AsciiArt
-	shouldBeRedrawn  bool
 	lastDrawnMessage string
 	loggedIn         bool
-	oldState         *term.State
+	termState        *term.State
 }
 
 type TermSize struct {
@@ -49,20 +48,20 @@ func New(config config.Config) (Tui, error) {
 			Lines: lines,
 			Cols:  cols,
 		},
-		position:        0,
-		message:         "SATA ANDAGI",
-		shouldBeRedrawn: true,
-		loggedIn:        false,
-		oldState:        state,
-		config:          config,
+		position:  0,
+		message:   "Enter Creds:",
+		loggedIn:  false,
+		termState: state,
+		config:    config,
 	}
 	self.fields = self.getFields()
 	return self, nil
 }
 
 func (self *Tui) Start(charReader CharReader) {
-	self.reset()
+	self.setupDraw()
 	self.draw()
+	self.termState, _ = term.MakeRaw(int(os.Stdin.Fd()))
 
 	for {
 		symbol, err := charReader()
@@ -117,17 +116,7 @@ func (self *Tui) getFields() []field {
 	}
 }
 
-// Functions that need to be called to get the terminal into
-// The proper state.
-func (self *Tui) reset() {
-	term.MakeRaw(int(os.Stdin.Fd()))
-	self.loggedIn = false
-	self.position = 0
-	self.fields = self.getFields()
-}
-
 func (self *Tui) failedPasswordReset() {
-	term.MakeRaw(int(os.Stdin.Fd()))
 	self.fields[2] = newInput("password", true)
 }
 
@@ -174,14 +163,9 @@ func (self *Tui) handleInput(symbol []int) {
 }
 
 func (self *Tui) login() {
-	// On login, we have to clear the terminal.
-	self.shouldBeRedrawn = true
-
 	sessionName := self.fields[0].getContents()
 	username := self.fields[1].getContents()
 	password := self.fields[2].getContents()
-
-	term.Restore(int(os.Stdin.Fd()), self.oldState)
 
 	var session config.Session
 	for _, this_session := range self.config.Sessions {
@@ -191,16 +175,19 @@ func (self *Tui) login() {
 		}
 	}
 
+	self.message = "Authenticating..."
+	self.draw()
+	term.Restore(int(os.Stdin.Fd()), self.termState)
 	err := login.Authenticate(username, password, session)
 
-	// We reset the terminal no matter if the login was right or wrong.
-	// This way wrong logins make the user re-enter the username and password.
-
 	if err != nil {
+		// Reset the fields when the password is wrong.
 		self.failedPasswordReset()
 		self.message = fmt.Sprint(err)
+		// Only reset the state if the TUI isn't being discarded, this is so
+		// we can restore to a proper state in our next tui.
+		self.termState, _ = term.MakeRaw(int(os.Stdin.Fd()))
 	} else {
-		self.reset()
 		self.message = "Success!"
 		self.loggedIn = true
 	}

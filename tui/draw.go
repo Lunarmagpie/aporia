@@ -17,17 +17,16 @@ const brCorner = "┘"
 const boxHeight = 6
 const boxWidth = 30
 
-func (self *Tui) draw() error {
-	// Reset cursor position
-	if self.shouldBeRedrawn {
-		ansi.Clear()
-		self.shouldBeRedrawn = false
-		ansi.MoveCursor(0, 0)
-		draw(self.asciiArt, self.TermSize)
-		ansi.MoveCursor(0, 0)
-		self.drawBox()
-	}
+// Draw the background, which should only be drawn once.
+func (self *Tui) setupDraw() {
+	ansi.Clear()
+	ansi.MoveCursor(0, 0)
+	draw(self.asciiArt, self.TermSize)
+	ansi.MoveCursor(0, 0)
+	self.drawBox()
+}
 
+func (self *Tui) draw() error {
 	// Draw the message
 	if self.lastDrawnMessage != self.message {
 		self.lastDrawnMessage = self.message

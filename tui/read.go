@@ -9,7 +9,7 @@ type CharReader = func() ([]int, error)
 
 // Read characters from the terminal. A sequence such as \027[n will be
 // returned as one character.
-// Note that this function will put the terminal into raw mode.
+// Note that this function will not put the terminal into raw mode.
 func ReadTermChars() func() ([]int, error) {
 	buff := []int{}
 
