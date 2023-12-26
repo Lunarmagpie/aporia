@@ -15,6 +15,9 @@ const AporiaStartxPath = "APORIA_STARTX_PATH"
 const AporiaExec = "APORIA_EXEC"
 const X11StartupCommand = "exec /bin/bash --login /etc/aporia/.scripts/startx.sh /etc/aporia/.scripts/xsetup.sh"
 
+var ShutdownCommand = []string{"/bin/bash", "-c", "shutdown now"}
+var RebootCommand = []string{"/bin/bash", "-c", "reboot"}
+
 // Ascii art used when there is no config
 const DefaultAsciiArt = ``
 

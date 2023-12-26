@@ -44,6 +44,18 @@ func ReadTermChars() func() ([]int, error) {
 				continue
 			}
 
+			if reflect.DeepEqual(buff, []int{27, 91, 50}) {
+				continue
+			}
+
+			if reflect.DeepEqual(buff, []int{27, 91, 50, 51}) {
+				continue
+			}
+
+			if reflect.DeepEqual(buff, []int{27, 91, 50, 52}) {
+				continue
+			}
+
 			copy := buff
 			buff = []int{}
 			return copy, nil

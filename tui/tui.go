@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"reflect"
 
 	"aporia/ansi"
 	"aporia/config"
+	"aporia/constants"
 	"aporia/login"
 
 	"golang.org/x/term"
@@ -153,6 +155,18 @@ func (self *Tui) handleInput(symbol []int) {
 		} else {
 			self.NextPosition()
 		}
+		return
+	}
+
+	// F11
+	if reflect.DeepEqual(symbol, []int{27, 91, 50, 51, 126}) {
+		exec.Command(constants.ShutdownCommand[0], constants.ShutdownCommand[1:]...).Run()
+		return
+	}
+
+	// F12
+	if reflect.DeepEqual(symbol, []int{27, 91, 50, 52, 126}) {
+		exec.Command(constants.RebootCommand[0], constants.RebootCommand[1:]...).Run()
 		return
 	}
 
