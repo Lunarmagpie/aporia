@@ -53,19 +53,23 @@ Aporia supports basics keybinds.
 
 - <kbd>Enter</kbd>: Confirm
 - <kbd>Tab</kbd>: Next Line
+- <kbd>F11</kbd>: Shutdown
+- <kbd>F12</kbd>: Reboot 
 
 ## FAQ
 <details>
 <summary>How do I make the font size in my TTY smaller?</summary><br>
 
-Edit the `FONTSIZE` variable in `/etc/default/console-setup`. I use fontzie
-`16x12` on my 1920x1080 computer.
+You can edit the `FONTSIZE` variable in `/etc/default/console-setup`. Alternitively,
+run the command `sudo dpkg-reconfigure console-setup`. This will allow you to safely change the
+font and all font sizes available on your computer.
+
 </details>
 
 <details>
 <summary>Why does my ascii art show up as diamonds?</summary><br>
 
-The `terminus` font does not support certain braille characters. Using a different ascii art generator will likely
+Some terminal fonts do not support certain braille characters. Using a different ascii art generator will likely
 fix your problem.
 </details>
 
