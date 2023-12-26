@@ -12,8 +12,8 @@ package login
 import "C"
 import (
 	"aporia/ansi"
-	"aporia/constants"
 	"aporia/config"
+	"aporia/constants"
 	"errors"
 	"fmt"
 	"unsafe"
@@ -29,6 +29,7 @@ func Authenticate(username string, password string, session config.Session) erro
 	defer C.free(unsafe.Pointer(usernameStr))
 	defer C.free(unsafe.Pointer(serviceStr))
 	defer C.free(unsafe.Pointer(passwordStr))
+	defer C.free(unsafe.Pointer(handle))
 
 	{
 		ret := C.pam_start(serviceStr, usernameStr, &conv, &handle)
@@ -48,7 +49,7 @@ func Authenticate(username string, password string, session config.Session) erro
 	{
 		ret := C.pam_acct_mgmt(handle, 0)
 		if ret != C.PAM_SUCCESS {
-			return errors.New("pam_acct_mgmt")
+			return errors.New("Account is not valid.")
 		}
 	}
 
@@ -57,7 +58,7 @@ func Authenticate(username string, password string, session config.Session) erro
 
 	// Child shell must be cleared here
 	ansi.Clear()
-
+	fmt.Println("Setting credentials...")
 	{
 		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
 		if ret != C.PAM_SUCCESS {
@@ -65,28 +66,27 @@ func Authenticate(username string, password string, session config.Session) erro
 		}
 	}
 
+	fmt.Println("Opening session...")
+	// This is where the bug is happening.
 	{
-		ret := C.pam_open_session(handle, 0)
+		// Silenced to hide the distro's login message
+		ret := C.pam_open_session(handle, 1)
 		if ret != C.PAM_SUCCESS {
+			fmt.Println("There was an error opening the session." + pamReason(ret))
 			C.pam_setcred(handle, C.PAM_DELETE_CRED)
 			return errors.New("pam_open_session " + pamReason(ret))
 		}
+		fmt.Println("Session opened successfully.")
 	}
 
-	C.set_pam_env(handle)
-
-	// DBUS variables need to be set for wayland to work properly
-	loc := C.CString(fmt.Sprint("unix:path=/run/user/", pwnam.pw_uid, "/bus"))
-	runtimeDir := C.CString(fmt.Sprint("/run/user/", pwnam.pw_uid))
-
-	C.pam_misc_setenv(handle, C.CString("XDG_RUNTIME_DIR"), runtimeDir, 0)
-	C.pam_misc_setenv(handle, C.CString("DBUS_SESSION_BUS_ADDRESS"), loc, 0)
-
 	// Login was successful, so lets save the choices for next time.
+	fmt.Println("Saving last session...")
 	config.SaveSession(session.Name, username)
 
+	fmt.Println("Launching session...")
 	launch(session, handle, pwnam)
 
+	fmt.Println("Session closed, restarting Aporia")
 	return nil
 }
 
@@ -128,7 +128,7 @@ func pamReason(err C.int) string {
 }
 
 func closePamSession(handle *C.struct_pam_handle) {
-	result := C.pam_setcred(handle, C.PAM_DELETE_CRED)
 	C.pam_close_session(handle, 0)
+	result := C.pam_setcred(handle, C.PAM_DELETE_CRED)
 	C.pam_end(handle, result)
 }

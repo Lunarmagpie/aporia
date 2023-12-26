@@ -17,14 +17,15 @@ func main() {
 
 	termState, _ := term.GetState(int(os.Stdin.Fd()))
 
-	for {
-		configObj, err := config.LoadConfig()
-		if err != nil {
-			config_ := config.DefaultConfig()
-			configObj = &config_
-		}
-		ui, _ := tui.New(*configObj, *termState)
-		ui.SetAsciiArt(configObj.GetAscii())
-		ui.Start()
+	configObj, err := config.LoadConfig()
+	if err != nil {
+		config_ := config.DefaultConfig()
+		configObj = &config_
 	}
+	ui, _ := tui.New(*configObj, *termState)
+	ui.SetAsciiArt(configObj.GetAscii())
+	ui.Start()
+
+	// Restart servie to start with a clean slate. This is a bit sus.
+	os.Exit(0)
 }

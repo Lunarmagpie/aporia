@@ -42,11 +42,17 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 		envMap[k] = v
 	}
 
+	user := fmt.Sprint("/run/user/", pwnam.pw_uid)
+
 	setEnv("HOME", homeDir)
 	setEnv("PWD", homeDir)
 	setEnv("SHELL", C.GoString(pwnam.pw_shell))
 	setEnv("USER", C.GoString(pwnam.pw_name))
 	setEnv("LOGNAME", C.GoString(pwnam.pw_name))
+
+	// DBUS variable must be set for Wayland to work properly.
+	dbusAddress := fmt.Sprint("unix:path=", user, "/bus")
+	setEnv("DBUS_SESSION_BUS_ADDRESS", dbusAddress)
 
 	termValue, found := os.LookupEnv("TERM")
 	if found {
@@ -57,15 +63,15 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 
 	setEnv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin")
 
-	// XDG Variables
-	user := fmt.Sprint("/run/user/", pwnam.pw_uid)
-	setEnv("XDG_RUNTIME_DIR", user)
-	setEnv("XDG_SESSION_CLASS", "user")
-	setEnv("XDG_SESSION_ID", "1")
-	setEnv("XDG_SESSION_DESKTOP", desktopName)
-	setEnv("XDG_SEAT", "seat0")
-	setEnv("XDG_VTNR", "1")
+	// pam_systemd options
 	setEnv("XDG_SESSION_TYPE", sessionType)
+	setEnv("XDG_SESSION_DESKTOP", desktopName)
+	setEnv("XDG_SESSION_DESKTOP", desktopName)
+	setEnv("XDG_SESSION_CLASS", "user")
+	// setEnv("XDG_RUNTIME_DIR", user)
+	// setEnv("XDG_SESSION_ID", "1")
+	// setEnv("XDG_SEAT", "seat0")
+	// setEnv("XDG_VTNR", "1")
 
 	os.Chown(user, int(pwnam.pw_uid), int(pwnam.pw_gid))
 

@@ -186,8 +186,6 @@ func (self *Tui) login() {
 		// Reset the fields when the password is wrong.
 		self.failedPasswordReset()
 		self.message = fmt.Sprint(err)
-		// Only reset the state if the TUI isn't being discarded, this is so
-		// we can restore to a proper state in our next tui.
 		_, _ = term.MakeRaw(int(os.Stdin.Fd()))
 	} else {
 		self.message = "Success!"

@@ -7,9 +7,10 @@ package login
 // #include <utmp.h>
 import "C"
 import (
+	"aporia/ansi"
 	"aporia/config"
 	"aporia/constants"
-	"os"
+	"fmt"
 	"syscall"
 )
 
@@ -18,6 +19,7 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 
 	if pid == 0 {
 		// Child
+		fmt.Println("Launching " + session.SessionType + "...")
 		becomeUser(pwnam)
 		shell := C.GoString(pwnam.pw_shell)
 		env := makeEnv(pam_handle, pwnam, session.Name, string(session.SessionType))
@@ -29,6 +31,8 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 			launchX11(env, shell, session.Exec, session.Filepath)
 		case config.WaylandSession:
 			launchWayland(env, shell, session.Exec, session.Filepath)
+		default:
+			fmt.Println("Invalid session type. This should never happen.")
 		}
 	}
 
@@ -40,13 +44,16 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 	var status C.int
 	for C.waitpid(-1, &status, 0) > 0 {}
 
-	closePamSession(pam_handle)
+	fmt.Println("Child process has closed, beginning cleanup...")
+
 	removeUtmpEntry(&utmpEntry)
+	closePamSession(pam_handle)
 }
 
 func launchShell(env []string, shell string) {
+	// We don't want logs showing up on shell login.
+	ansi.Clear()
 	syscall.Exec(shell, []string{shell}, env)
-	os.Exit(0)
 }
 
 func launchX11(env []string, shell string, exec *string, filepath *string) {
@@ -56,7 +63,6 @@ func launchX11(env []string, shell string, exec *string, filepath *string) {
 		env = append(env, constants.AporiaExec+"="+*exec)
 	}
 	syscall.Exec(shell, []string{shell, "-c", constants.X11StartupCommand}, env)
-	os.Exit(0)
 }
 
 func launchWayland(env []string, shell string, exec *string, filepath *string) {
@@ -65,5 +71,4 @@ func launchWayland(env []string, shell string, exec *string, filepath *string) {
 	} else {
 		syscall.Exec(shell, []string{shell, "-c", *exec}, env)
 	}
-	os.Exit(0)
 }

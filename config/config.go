@@ -269,7 +269,6 @@ func (self *Config) GetAscii() AsciiArt {
 	}
 	if self.ascii != nil {
 		for _, file := range self.AsciiArts {
-			fmt.Println(file.name)
 			if file.name == *self.ascii {
 				return file
 			}
