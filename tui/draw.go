@@ -23,7 +23,7 @@ func (self *Tui) setupDraw() {
 	draw(self.asciiArt, self.TermSize)
 	ansi.MoveCursor(0, 0)
 	self.drawTopLeftBox()
-	self.drawBox(0, self.TermSize.Cols - 14, 14, []string{"F11 Shutdown", "F12 Reboot"})
+	self.drawBox(0, self.TermSize.Cols - 13, 14, []string{"F11 Shutdown", "F12 Reboot"})
 }
 
 func (self *Tui) draw() error {

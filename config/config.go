@@ -118,7 +118,7 @@ func parseAsciiFile(filename string) (*AsciiArt, error) {
 	origin := Center
 
 	asciiLines := []string{}
-	var asciiStartLine int
+	asciiStartLine := -1
 
 	for i, line := range contentsLines {
 		if strings.HasPrefix(line, "messages:") {
@@ -131,9 +131,13 @@ func parseAsciiFile(filename string) (*AsciiArt, error) {
 		if strings.HasPrefix(line, "origin") {
 			origin = Center
 		}
-		if strings.HasPrefix(line, "-") {
+		if strings.HasPrefix(line, "-") && asciiStartLine == -1 {
 			asciiStartLine = i
 		}
+	}
+
+	if asciiStartLine == -1 {
+		asciiStartLine = 0
 	}
 
 	for i := asciiStartLine + 1; i < len(contentsLines); i++ {
