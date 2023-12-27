@@ -19,7 +19,7 @@ var ShutdownCommand = []string{"/bin/bash", "-c", "shutdown now"}
 var RebootCommand = []string{"/bin/bash", "-c", "reboot"}
 
 // Ascii art used when there is no config
-const DefaultAsciiArt = ``
+const DefaultAsciiArt = `Check the docs on how to add an ascii art!`
 
 func DefaultMessages() []string {
 	return []string{"Login:"}

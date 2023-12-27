@@ -2,7 +2,6 @@ package config
 
 import (
 	"aporia/constants"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,8 +49,6 @@ func desktopCrawlPath(path string, sessionType SessionType) []Session {
 
 			lClean := strings.TrimSpace(parts[0])
 			rClean := strings.TrimSpace(parts[1])
-
-			fmt.Println(lClean)
 
 			if lClean == "Name" {
 				name = &rClean

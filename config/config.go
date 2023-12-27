@@ -14,10 +14,11 @@ import (
 )
 
 type Config struct {
-	AsciiArts   []AsciiArt
-	Sessions    []Session
-	LastSession *LastSession
-	ascii       *string
+	AsciiArts    []AsciiArt
+	isAsciiError bool
+	Sessions     []Session
+	LastSession  *LastSession
+	ascii        *string
 }
 
 type SessionType string
@@ -66,24 +67,15 @@ type LastSession struct {
 	User        string
 }
 
-type Origin string
-
-const (
-	Center Origin = "center"
-)
-
 type AsciiArt struct {
 	StrLines []string
 	Lines    int
 	Cols     int
-
 	Messages []string
-	Origin   Origin
-
-	name string
+	name     string
 }
 
-func newAsciiArt(name string, art string, messages []string, origin Origin) AsciiArt {
+func newAsciiArt(name string, art string, messages []string) AsciiArt {
 	lines := strings.Split(art, "\n")
 
 	longestLine := utf8.RuneCountInString(lines[0])
@@ -99,7 +91,6 @@ func newAsciiArt(name string, art string, messages []string, origin Origin) Asci
 		Cols:     longestLine,
 		Lines:    len(lines),
 		Messages: messages,
-		Origin:   origin,
 		name:     name,
 	}
 }
@@ -115,23 +106,22 @@ func parseAsciiFile(filename string) (*AsciiArt, error) {
 	contentsLines := strings.Split(contentsStr, "\n")
 
 	messages := []string{"Enter Credentials:"}
-	origin := Center
 
 	asciiLines := []string{}
 	asciiStartLine := -1
 
 	for i, line := range contentsLines {
-		if strings.HasPrefix(line, "messages:") {
-			after, _ := strings.CutPrefix(line, "messages:")
-			messages = strings.Split(after, ",")
+		fields := strings.Fields(line)
+		if len(fields) >= 2 && fields[0] == "messages" && fields[1] == "=" {
+			if len(fields) < 3 {
+				return nil, errors.New("Formatting error in file: " + filename)
+			}
+			messages = strings.Split(fields[2], ",")
 			for i, message := range messages {
 				messages[i] = strings.TrimSpace(message)
 			}
 		}
-		if strings.HasPrefix(line, "origin") {
-			origin = Center
-		}
-		if strings.HasPrefix(line, "-") && asciiStartLine == -1 {
+		if strings.HasPrefix(line, "---") && asciiStartLine == -1 {
 			asciiStartLine = i
 		}
 	}
@@ -151,7 +141,6 @@ func parseAsciiFile(filename string) (*AsciiArt, error) {
 		strings.TrimSuffix(filename, "."+constants.AsciiFileExt),
 		strings.Join(asciiLines, "\n"),
 		messages,
-		origin,
 	)
 
 	return &ascii, nil
@@ -166,7 +155,7 @@ func loadLastSession() (*LastSession, error) {
 
 	contents := strings.Split(string(file), "\n")
 	if len(contents) < 2 {
-		return nil, errors.New("Last session file was configured incorrectly")
+		return nil, errors.New("Last session file was configured incorrectly.\nRun the command `# rm /etc/aporia/.last-session` to fix.")
 	}
 
 	return &LastSession{
@@ -181,11 +170,11 @@ func SaveSession(sessionName string, user string) {
 	os.WriteFile(constants.LastSessionFile, []byte(contents), 0644)
 }
 
-func parseConfigFile() *string {
+func parseConfigFile() (*string, error) {
 	filepath := filepath.Join(constants.ConfigDir, constants.ConfigFile)
 	data, err := os.ReadFile(filepath)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	contentsStr := string(data)
@@ -199,10 +188,13 @@ func parseConfigFile() *string {
 
 		fields := strings.Fields(line)
 		if fields[0] == "ascii" {
-			return &fields[2]
+			if len(fields) <= 2 {
+				return nil, errors.New("Error in user config file. Missing ascii art.")
+			}
+			return &fields[2], nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func LoadConfig() (*Config, error) {
@@ -217,12 +209,14 @@ func LoadConfig() (*Config, error) {
 	wg := sync.WaitGroup{}
 
 	asciiArts := []AsciiArt{}
+	asciiArtErrors := []error{}
 	parseEntry := func(entry fs.DirEntry) {
 		defer wg.Done()
 		filepath := filepath.Join(constants.ConfigDir, entry.Name())
 		if strings.HasSuffix(entry.Name(), "."+constants.AsciiFileExt) {
 			asciiFile, err := parseAsciiFile(entry.Name())
 			if err != nil {
+				asciiArtErrors = append(asciiArtErrors, err)
 				return
 			}
 			asciiArts = append(asciiArts, *asciiFile)
@@ -246,11 +240,29 @@ func LoadConfig() (*Config, error) {
 
 	session, _ := loadLastSession()
 
+	ascii, asciiError := parseConfigFile()
+	if asciiError != nil {
+		asciiArtErrors = append(asciiArtErrors, asciiError)
+	}
+
+	isAsciiError := false
+	if len(asciiArtErrors) != 0 {
+		isAsciiError = true
+		asciiArt := ""
+		for _, err := range asciiArtErrors {
+			asciiArt = asciiArt + fmt.Sprintln(err)
+		}
+		asciiArts = []AsciiArt{
+			newAsciiArt("Error", asciiArt, []string{"There was an error :("}),
+		}
+	}
+
 	return &Config{
-		AsciiArts:   asciiArts,
-		Sessions:    append(sessions, newShellSession()),
-		LastSession: session,
-		ascii:       parseConfigFile(),
+		AsciiArts:    asciiArts,
+		isAsciiError: isAsciiError,
+		Sessions:     append(sessions, newShellSession()),
+		LastSession:  session,
+		ascii:        ascii,
 	}, nil
 }
 
@@ -263,26 +275,29 @@ func DefaultConfig() Config {
 }
 
 func (self *Config) GetAscii() AsciiArt {
-	emptyAsciiArt := func() AsciiArt {
-		return newAsciiArt(
-			"This doesn't matter because it is never read.",
-			constants.DefaultAsciiArt,
-			constants.DefaultMessages(),
-			Center,
-		)
+	if self.isAsciiError {
+		return self.AsciiArts[0]
 	}
+
 	if self.ascii != nil {
 		for _, file := range self.AsciiArts {
 			if file.name == *self.ascii {
 				return file
 			}
 		}
-		os.Exit(0)
-		return emptyAsciiArt()
+		return newAsciiArt(
+			"This doesn't matter because it is never read.",
+			"ascii art `"+*self.ascii+"` not found",
+			constants.DefaultMessages(),
+		)
 	}
 
 	if len(self.AsciiArts) == 0 {
-		return emptyAsciiArt()
+		return newAsciiArt(
+			"This doesn't matter because it is never read.",
+			constants.DefaultAsciiArt,
+			constants.DefaultMessages(),
+		)
 	}
 
 	return self.AsciiArts[rand.Intn(len(self.AsciiArts))]
