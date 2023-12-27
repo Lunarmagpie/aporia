@@ -2,7 +2,7 @@
 
 Aporia is a login manager that displays ascii art. It supports x11 and wayland sessions.
 
-<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/36184c2a-9fc8-45ce-8dd2-afa6b721fc24" alt="drawing" width="700"/>
+<img src="https://github.com/Lunarmagpie/aporia/assets/65521138/98e321a7-9bd7-4ef8-9b1d-da0be0a3c7dc" alt="drawing" width="700"/>
 
 Only systemd is supported.
 
@@ -72,6 +72,14 @@ font and all font sizes available on your computer.
 Some terminal fonts do not support certain braille characters. Using a different ascii art generator will likely
 fix your problem.
 </details>
+
+<details>
+<summary>Is aporia production ready?</summary><br>
+
+I daily drive aporia with no issues.
+
+</details>
+
 
 ## Thank You
 - Thank you to the creator of [ly](https://github.com/FairyGlade/ly) for making your project under WTFPL.
