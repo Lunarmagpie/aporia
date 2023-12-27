@@ -3,7 +3,7 @@ package ansi
 import "fmt"
 
 func Clear() {
-	// fmt.Print("\033[H\033[0J")
+	fmt.Print("\033[H\033[0J")
 }
 
 func MoveCursor(line int, col int) {
