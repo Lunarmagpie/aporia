@@ -4,8 +4,8 @@ After=systemd-user-sessions.service plymouth-quit-wait.service
 Conflicts=getty@tty1.service
 
 [Service]
-Restart=on-success
-RestartSec=0.1
+Restart=always
+RestartSec=0
 Type=idle
 ExecStart=/bin/aporia
 StandardInput=tty
