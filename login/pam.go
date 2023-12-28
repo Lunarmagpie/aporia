@@ -16,6 +16,7 @@ import (
 	"aporia/constants"
 	"errors"
 	"fmt"
+	"runtime"
 	"unsafe"
 )
 
@@ -24,12 +25,23 @@ func Authenticate(username string, password string, session config.Session) erro
 	usernameStr := C.CString(username)
 	serviceStr := C.CString(constants.PamService)
 	passwordStr := C.CString(password)
-	conv := C.new_conv(passwordStr)
+
+	pinner := runtime.Pinner{}
+
+	pamConvCallbackPin := pamConvCallback
+	pamConvCallbackPtr := (***[0]byte)(unsafe.Pointer(&pamConvCallbackPin))
+	appdataPtr := unsafe.Pointer(passwordStr)
+	pinner.Pin(pamConvCallbackPtr)
+	conv := C.struct_pam_conv{
+		conv:        **pamConvCallbackPtr,
+		appdata_ptr: appdataPtr,
+	}
 
 	defer C.free(unsafe.Pointer(usernameStr))
 	defer C.free(unsafe.Pointer(serviceStr))
 	defer C.free(unsafe.Pointer(passwordStr))
 	defer C.free(unsafe.Pointer(handle))
+	defer pinner.Unpin()
 
 	{
 		ret := C.pam_start(serviceStr, usernameStr, &conv, &handle)
@@ -88,6 +100,48 @@ func Authenticate(username string, password string, session config.Session) erro
 
 	fmt.Println("Session closed, restarting Aporia")
 	return nil
+}
+
+func pamConvCallback(
+	num_msgs C.int,
+	msgs_ptr **C.struct_pam_message,
+	resp_ptr **C.struct_pam_response,
+	appdata_ptr *C.void,
+) int {
+	result := C.PAM_SUCCESS
+
+	*resp_ptr = C.allocate_conv(num_msgs)
+
+	if (*(*int)(unsafe.Pointer(&*resp_ptr)) == 0) {
+		return C.PAM_BUF_ERR
+	}
+	
+	password := (*C.char)(unsafe.Pointer(appdata_ptr))
+
+	for i := C.int(0); i < num_msgs; i++ {
+		msg_msg_ptr := new(int)
+		resp_msg_ptr := new(int)
+		*msg_msg_ptr = int(*(*C.int)(unsafe.Pointer(&msgs_ptr)) + i)
+		*resp_msg_ptr = int(*(*C.int)(unsafe.Pointer(&resp_ptr)) + i)
+
+		msg := (*C.struct_pam_message)(unsafe.Pointer(msg_msg_ptr))
+		resp := (*C.struct_pam_response)(unsafe.Pointer(resp_msg_ptr))
+
+		switch msg.msg_style {
+		case C.PAM_PROMPT_ECHO_ON:
+			break
+		case C.PAM_PROMPT_ECHO_OFF:
+			resp.resp = C.strdup(password)
+			break
+		case C.PAM_ERROR_MSG:
+			break
+		case C.PAM_TEXT_INFO:
+			break
+		}
+	}
+
+	return result
+
 }
 
 func pamReason(err C.int) string {

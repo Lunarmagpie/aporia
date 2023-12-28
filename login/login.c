@@ -25,7 +25,7 @@ static int conv_callback(
                 // That will never happen.
                 break;
             case PAM_PROMPT_ECHO_OFF:
-                (*resp)[i].resp = strdup(password);
+                resp[i]->resp = strdup(password);
                 break;
             case PAM_ERROR_MSG:
                 // TODO
@@ -48,6 +48,10 @@ static int conv_callback(
     }
 
     return result;
+}
+
+struct pam_response* allocate_conv(int num_msgs) {
+    return calloc(num_msgs, sizeof(struct pam_response));
 }
 
 struct pam_conv new_conv(char *password) {
