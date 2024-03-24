@@ -76,7 +76,7 @@ fix your problem.
 <details>
 <summary>Is aporia production ready?</summary><br>
 
-I daily drive aporia with no issues.
+There is a bug where somethimes the window manager will refuse to launch. I am looking into this.
 
 </details>
 
