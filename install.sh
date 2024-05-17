@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 set -e
 
 if [ $(/usr/bin/id -u $USER) -ne 0 ]; then

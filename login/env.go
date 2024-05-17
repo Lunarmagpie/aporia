@@ -68,7 +68,7 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 	setEnv("XDG_SESSION_DESKTOP", desktopName)
 	setEnv("XDG_SESSION_DESKTOP", desktopName)
 	setEnv("XDG_SESSION_CLASS", "user")
-	// setEnv("XDG_RUNTIME_DIR", user)
+	setEnv("XDG_RUNTIME_DIR", user)
 	// setEnv("XDG_SESSION_ID", "1")
 	// setEnv("XDG_SEAT", "seat0")
 	// setEnv("XDG_VTNR", "1")

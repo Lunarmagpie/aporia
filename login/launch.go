@@ -10,6 +10,7 @@ import (
 	"aporia/ansi"
 	"aporia/config"
 	"aporia/constants"
+	"strings"
 	"fmt"
 	"syscall"
 )
@@ -67,7 +68,7 @@ func launchX11(env []string, shell string, exec *string, filepath *string) {
 
 func launchWayland(env []string, shell string, exec *string, filepath *string) {
 	if filepath != nil {
-		syscall.Exec(shell, []string{shell, "-c", *filepath}, env)
+		syscall.Exec(shell, []string{shell, "-c", strings.Replace(*filepath, " ", "\\ ", -1)}, env)
 	} else {
 		syscall.Exec(shell, []string{shell, "-c", *exec}, env)
 	}
