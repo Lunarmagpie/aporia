@@ -45,7 +45,14 @@ func launch(session config.Session, pam_handle *C.struct_pam_handle, pwnam *C.st
 	var status C.int
 	for C.waitpid(-1, &status, 0) > 0 {}
 
-	fmt.Println("Child process has closed, beginning cleanup...")
+	if (status >= 1) {
+		// There was an error, so lets wait until the user reads it to continue.
+		fmt.Println()
+		fmt.Println("[ Script exited with code", int(status), "]", " There was an error with your Window Manager or configuration. Press enter to continue...")
+		fmt.Scanln()
+	} else {
+		fmt.Println("Child process has closed, beginning cleanup...")
+	}
 
 	removeUtmpEntry(&utmpEntry)
 	closePamSession(pam_handle)
