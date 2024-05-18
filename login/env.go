@@ -63,15 +63,22 @@ func makeEnv(pam_handle *C.struct_pam_handle, pwnam *C.struct_passwd, desktopNam
 
 	setEnv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin")
 
-	// pam_systemd options
+	// XDG Session environment.
+	// See: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 	setEnv("XDG_SESSION_TYPE", sessionType)
 	setEnv("XDG_SESSION_DESKTOP", desktopName)
 	setEnv("XDG_SESSION_DESKTOP", desktopName)
 	setEnv("XDG_SESSION_CLASS", "user")
+
+	setEnv("XDG_CONFIG_HOME", fmt.Sprint(homeDir, "/.config"))
+	setEnv("XDG_CACHE_HOME", fmt.Sprint(homeDir, "/.cache"))
+	setEnv("XDG_DATA_HOME", fmt.Sprint(homeDir, "/.local/share"))
+	setEnv("XDG_STATE_HOME", fmt.Sprint(homeDir, "/.local/state"))
 	setEnv("XDG_RUNTIME_DIR", user)
-	// setEnv("XDG_SESSION_ID", "1")
-	// setEnv("XDG_SEAT", "seat0")
-	// setEnv("XDG_VTNR", "1")
+
+	// System Directories
+	setEnv("XDG_DATA_DIRS", "/usr/local/share:/usr/share")
+	setEnv("XDG_CONFIG_DIRS", "/etc/xdg")
 
 	os.Chown(user, int(pwnam.pw_uid), int(pwnam.pw_gid))
 

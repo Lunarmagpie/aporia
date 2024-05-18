@@ -1,16 +1,16 @@
 # Aporia
 
-Aporia is a login manager that displays ascii art. It supports x11 and wayland sessions.
+Aporia is a login manager that displays ascii art. It supports x11 and wayland sessions, and the [XDG base directory specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
 <img src="https://github.com/Lunarmagpie/aporia/assets/65521138/98e321a7-9bd7-4ef8-9b1d-da0be0a3c7dc" alt="drawing" width="700"/>
 
 Only systemd is supported.
 
-## Installtion
+## Compilation & Installtion
 Install the dependencies:
 - Go compiler
 - gcc
-- pam (libpam-dev on ubuntu)
+- pam (libpam-dev on debian based distros)
 
 Run the install.sh script as root.
 ```sh
@@ -68,15 +68,13 @@ font and all font sizes available on your computer.
 
 <details>
 <summary>Why does my ascii art show up as diamonds?</summary><br>
-
-Some terminal fonts do not support certain braille characters. Using a different ascii art generator will likely
-fix your problem.
+Some terminal fonts do not support braille characters. Using an ascii art generator that does not output braille characters will fix your problem.
 </details>
 
 <details>
 <summary>Is aporia production ready?</summary><br>
 
-There is a bug where somethimes the window manager will refuse to launch. I am looking into this.
+I daily drive aporia with no issues.
 
 </details>
 
