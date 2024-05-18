@@ -32,11 +32,11 @@ static int conv_callback(
                 (*resp)[i].resp = strdup(password);
                 break;
             case PAM_ERROR_MSG:
-                handlePamErrorMessage(msg[i]->msg);
+                handlePamErrorMessage((char*) msg[i]->msg);
                 result = PAM_CONV_ERR;
                 break;
             case PAM_TEXT_INFO:
-                handlePamTextInfo(msg[i]->msg);
+                handlePamTextInfo((char*) msg[i]->msg);
                 break;
         }
         if (result != PAM_SUCCESS) {
