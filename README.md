@@ -84,7 +84,7 @@ I daily drive Aporia with no issues.
 <details>
 <summary>How do I setup gnome-keyring or kde-wallet?</summary><br>
 
-Both gnome-keyring and kde-wallet will automatically open with no modifications to aporia. If you experience issues, please verify `/etc/pam.d/aporia` is correct for your setup.
+Both gnome-keyring and kde-wallet will automatically open with no modifications to Aporia. If you experience issues, please verify `/etc/pam.d/aporia` is correct for your setup.
 
 </details>
 
