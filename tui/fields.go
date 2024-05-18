@@ -55,7 +55,7 @@ func newInput(prompt string, masked bool) *input {
 }
 
 // Picker for WMs
-// looks like `< name     >`
+// looks like `<     name     >`
 type picker struct {
 	options  []string
 	selected int
@@ -64,10 +64,12 @@ type picker struct {
 func (self *picker) draw(boxSize int) (string, int) {
 	sessionName := self.options[self.selected]
 
-	leftover := boxSize - 6
-	afterName := leftover - len(sessionName)
+	leftover := boxSize - 4 - 30
 
-	return fmt.Sprint(" < ", sessionName, strings.Repeat(" ", afterName), " > "), 4
+	spacingBefore := (leftover - len(sessionName)) / 2
+	spacingAfter := leftover - len(sessionName) - spacingBefore
+
+	return fmt.Sprint(strings.Repeat(" ", 15), " <", strings.Repeat(" ", spacingBefore), sessionName, strings.Repeat(" ", spacingAfter), "> ", strings.Repeat(" ", 15)), 2 + 15
 }
 
 func (self *picker) onInput(tui *Tui, symbol []int) {

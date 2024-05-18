@@ -191,10 +191,18 @@ func (self *Tui) login() {
 		}
 	}
 
-	self.message = "Authenticating..."
-	self.draw()
 	term.Restore(int(os.Stdin.Fd()), &self.termState)
-	err := login.Authenticate(username, password, session)
+
+	set_message := func(message string) {
+		_, _ = term.MakeRaw(int(os.Stdin.Fd()))
+
+		self.message = message
+		self.draw()
+
+		term.Restore(int(os.Stdin.Fd()), &self.termState)
+	}
+	
+	err := login.Authenticate(username, password, session, set_message)
 
 	if err != nil {
 		// Reset the fields when the password is wrong.

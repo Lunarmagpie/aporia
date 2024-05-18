@@ -14,7 +14,7 @@ const trCorner = "┐"
 const blCorner = "└"
 const brCorner = "┘"
 
-const boxWidth = 35
+const boxWidth = 65
 
 // Draw the background, which should only be drawn once.
 func (self *Tui) setupDraw() {

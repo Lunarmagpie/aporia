@@ -19,7 +19,20 @@ import (
 	"unsafe"
 )
 
-func Authenticate(username string, password string, session config.Session) error {
+
+var set_message func (string)
+
+//export handlePamErrorMessage
+func handlePamErrorMessage(msg *C.char) {
+	set_message(C.GoString(msg))
+}
+
+//export handlePamTextInfo 
+func handlePamTextInfo (msg *C.char) {
+	set_message(C.GoString(msg))
+}
+
+func Authenticate(username string, password string, session config.Session, set_message_ func(string)) error {
 	var handle *C.struct_pam_handle
 	usernameStr := C.CString(username)
 	serviceStr := C.CString(constants.PamService)
@@ -30,6 +43,10 @@ func Authenticate(username string, password string, session config.Session) erro
 	defer C.free(unsafe.Pointer(serviceStr))
 	defer C.free(unsafe.Pointer(passwordStr))
 	defer C.free(unsafe.Pointer(handle))
+
+	set_message = set_message_
+
+	set_message("Authenticating...")
 
 	{
 		ret := C.pam_start(serviceStr, usernameStr, &conv, &handle)
