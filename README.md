@@ -20,10 +20,13 @@ $ sudo -E ./install.sh
 You have to disable whatever display manager is running as well.
 
 ## Usage
-To have ascii art you must put a file in `/etc/aporia/NAME.ascii`. Name can be whatever you want. It doesn't matter.
-The file must follow the format of the example file `examples/luna.ascii`. Be careful not to make an error!
+To have ascii art you must create a file called `/etc/aporia/NAME.ascii`. Name should be the name of your ascii art.
 
 Aporia will detect desktop environments automatically.
+
+### Configuration
+To configure Aporia, create a file called `/etc/aporia/config`. Currently the only conig option is `ascii = name`. See [`examples/config`](/examples/config) for more
+information.
 
 ### Adding Custom Desktop Environments
 Custom desktop environments are added as scripts.
@@ -72,9 +75,9 @@ Some terminal fonts do not support braille characters. Using an ascii art genera
 </details>
 
 <details>
-<summary>Is aporia production ready?</summary><br>
+<summary>Is Aporia production ready?</summary><br>
 
-I daily drive aporia with no issues.
+I daily drive Aporia with no issues.
 
 </details>
 
