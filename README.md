@@ -71,7 +71,8 @@ font and all font sizes available on your computer.
 
 <details>
 <summary>Why does my ascii art show up as diamonds?</summary><br>
-Some terminal fonts do not support braille characters. Using an ascii art generator that does not output braille characters will fix your problem.
+The linux TTY not support braille characters. Using an ascii art generator that does not output braille characters will fix your problem.
+Note that framebuffer terminals will support all characters, but I feel using a framebuffer terminal with Aporia defeats the purpose of the project.
 </details>
 
 <details>
