@@ -42,10 +42,6 @@ func New(config config.Config, resetTo term.State) (Tui, error) {
 		return Tui{}, err
 	}
 
-	if err != nil {
-		return Tui{}, err
-	}
-
 	self := Tui{
 		TermSize: TermSize{
 			Lines: lines,
@@ -110,6 +106,7 @@ func (self *Tui) getFields() []field {
 	}
 	if self.config.LastSession != nil {
 		userInput.contents = self.config.LastSession.User
+		userInput.location = len(self.config.LastSession.User)
 		self.position = 2
 	}
 
@@ -194,12 +191,11 @@ func (self *Tui) login() {
 	term.Restore(int(os.Stdin.Fd()), &self.termState)
 
 	set_message := func(message string) {
-		_, _ = term.MakeRaw(int(os.Stdin.Fd()))
+		oldState, _ := term.MakeRaw(int(os.Stdin.Fd()))
+		defer term.Restore(int(os.Stdin.Fd()), oldState)
 
 		self.message = message
 		self.draw()
-
-		term.Restore(int(os.Stdin.Fd()), &self.termState)
 	}
 
 	err := login.Authenticate(username, password, session, set_message)

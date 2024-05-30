@@ -15,6 +15,7 @@ type field interface {
 type input struct {
 	prompt   string
 	contents string
+	location int
 	masked   bool
 }
 
@@ -25,20 +26,32 @@ func (self *input) draw(boxSize int) (string, int) {
 	} else {
 		contents = self.contents
 	}
-	return self.prompt + ": " + contents, len(self.prompt) + len(contents) + 3
+	return self.prompt + ": " + contents, len(self.prompt) + self.location + 3
 }
 
 func (self *input) onInput(tui *Tui, symbol []int) {
-	if len(symbol) == 1 {
-		// Backspace
-		if symbol[0] == 127 {
-			if len(self.contents) > 0 {
-				self.contents = self.contents[:len(self.contents)-1]
-			}
-			// Other characters
-		} else {
-			self.contents = self.contents + string(rune(symbol[0]))
+	// Backspace
+	if symbol[0] == 127 {
+		if self.location > 0 {
+			self.contents = self.contents[:self.location-1] + self.contents[self.location:]
+			self.location -= 1
 		}
+		// Right Arrow
+	} else if reflect.DeepEqual(symbol, []int{27, 91, 67}) {
+		self.location += 1
+		if self.location >= len(self.contents) {
+			self.location = len(self.contents)
+		}
+		// Left Arrow
+	} else if reflect.DeepEqual(symbol, []int{27, 91, 68}) {
+		self.location -= 1
+		if self.location < 0 {
+			self.location = 0
+		}
+	} else if len(symbol) == 1 {
+		// Other characters
+		self.location += 1
+		self.contents = self.contents[:self.location-1] + string(rune(symbol[0])) + self.contents[self.location-1:]
 	}
 }
 
