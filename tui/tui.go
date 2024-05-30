@@ -201,7 +201,7 @@ func (self *Tui) login() {
 
 		term.Restore(int(os.Stdin.Fd()), &self.termState)
 	}
-	
+
 	err := login.Authenticate(username, password, session, set_message)
 
 	if err != nil {

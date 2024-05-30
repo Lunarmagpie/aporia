@@ -75,6 +75,14 @@ Some terminal fonts do not support braille characters. Using an ascii art genera
 </details>
 
 <details>
+<summary>How do I use a fingerprint sensor to login.</summary><br>
+
+Follow the arch wiki instructions for SDDM. More info coming in future.
+NOTE: I do not reccomend because fingerprints can not decrypt drives or unlock your keyring.
+
+</details>
+
+<details>
 <summary>Is Aporia production ready?</summary><br>
 
 I daily drive Aporia with no issues.
