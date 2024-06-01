@@ -169,6 +169,7 @@ func (self *Tui) handleInput(symbol []int) {
 
 	// Control + C
 	if reflect.DeepEqual(symbol, []int{3}) {
+		term.Restore(int(os.Stdin.Fd()), &self.termState)
 		os.Exit(1)
 	}
 
