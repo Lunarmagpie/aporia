@@ -1,2 +1,13 @@
 # Ascii is the name of the ascii file to use
 ascii = sata_andagi
+
+# The size of the box in the top left. Warning: values lower than 35 will not display properly.
+box_width = 50
+
+# The shutdown and reboot commands to use
+shutdown_command = /bin/bash -c shutdown now
+reboot_command = /bin/bash -c reboot
+
+# The paths to search for desktop files
+xsessions_path = /usr/share/xsessions
+wayland_sessions_path = /usr/share/wayland-sessions

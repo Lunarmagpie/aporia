@@ -77,7 +77,7 @@ type picker struct {
 func (self *picker) draw(boxSize int) (string, int) {
 	sessionName := self.options[self.selected]
 
-	sideSpacing := (boxSize / 2 - 15)
+	sideSpacing := (boxSize / 2 - 15) / 2
 	leftover := boxSize - 4 - (boxSize / 2 - 15)
 
 	spacingBefore := (leftover - len(sessionName)) / 2
