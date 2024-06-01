@@ -52,21 +52,21 @@ func Authenticate(username string, password string, session config.Session, set_
 		ret := C.pam_start(serviceStr, usernameStr, &conv, &handle)
 
 		if ret != C.PAM_SUCCESS {
-			return errors.New("Could not start pam session.")
+			return errors.New("Could not start pam session: " + pamReason(ret))
 		}
 	}
 
 	{
 		ret := C.pam_authenticate(handle, 0)
 		if ret != C.PAM_SUCCESS {
-			return errors.New("Could not authenticate user.")
+			return errors.New("Could not authenticate user: " + pamReason(ret))
 		}
 	}
 
 	{
 		ret := C.pam_acct_mgmt(handle, 0)
 		if ret != C.PAM_SUCCESS {
-			return errors.New("Account is not valid.")
+			return errors.New("Account is not valid: " + pamReason(ret))
 		}
 	}
 
@@ -79,7 +79,7 @@ func Authenticate(username string, password string, session config.Session, set_
 	{
 		ret := C.pam_setcred(handle, C.PAM_ESTABLISH_CRED)
 		if ret != C.PAM_SUCCESS {
-			return errors.New("pam_setcred")
+			return errors.New("pam_setcred: " + pamReason(ret))
 		}
 	}
 
@@ -89,9 +89,8 @@ func Authenticate(username string, password string, session config.Session, set_
 		// Silenced to hide the distro's login message
 		ret := C.pam_open_session(handle, 1)
 		if ret != C.PAM_SUCCESS {
-			fmt.Println("There was an error opening the session." + pamReason(ret))
 			C.pam_setcred(handle, C.PAM_DELETE_CRED)
-			return errors.New("pam_open_session " + pamReason(ret))
+			return errors.New("pam_open_session: " + pamReason(ret))
 		}
 		fmt.Println("Session opened successfully.")
 	}
