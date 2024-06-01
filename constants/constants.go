@@ -18,6 +18,8 @@ const X11StartupCommand = "exec /bin/bash --login /etc/aporia/.scripts/startx.sh
 var ShutdownCommand = []string{"/bin/bash", "-c", "shutdown now"}
 var RebootCommand = []string{"/bin/bash", "-c", "reboot"}
 
+const BoxWidth = 90
+
 // Ascii art used when there is no config
 const DefaultAsciiArt = `Check the docs on how to add an ascii art!`
 

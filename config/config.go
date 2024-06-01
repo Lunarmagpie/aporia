@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -18,7 +19,7 @@ type Config struct {
 	isAsciiError bool
 	Sessions     []Session
 	LastSession  *LastSession
-	ascii        *string
+	Extra        ConfigFile
 }
 
 type SessionType string
@@ -170,11 +171,28 @@ func SaveSession(sessionName string, user string) {
 	os.WriteFile(constants.LastSessionFile, []byte(contents), 0644)
 }
 
-func parseConfigFile() (*string, error) {
+type ConfigFile struct {
+	Ascii               *string
+	BoxWidth            int
+	ShutdownCommand     []string
+	RebootCommand       []string
+	XsessionsPath       string
+	WaylandSessionsPath string
+}
+
+func parseConfigFile() (ConfigFile, error) {
+	config := ConfigFile{
+		BoxWidth:            constants.BoxWidth,
+		ShutdownCommand:     constants.ShutdownCommand,
+		RebootCommand:       constants.RebootCommand,
+		XsessionsPath:       constants.X11SessionsDir,
+		WaylandSessionsPath: constants.WaylandSessionsDir,
+	}
+
 	filepath := filepath.Join(constants.ConfigDir, constants.ConfigFile)
 	data, err := os.ReadFile(filepath)
 	if err != nil {
-		return nil, nil
+		return config, nil
 	}
 
 	contentsStr := string(data)
@@ -187,14 +205,35 @@ func parseConfigFile() (*string, error) {
 		}
 
 		fields := strings.Fields(line)
+		if len(fields) <= 2 {
+			return config, errors.New("Error in user config file. Expected expression after =.")
+		}
+
 		if fields[0] == "ascii" {
-			if len(fields) <= 2 {
-				return nil, errors.New("Error in user config file. Missing ascii art.")
+			config.Ascii = &fields[2]
+		}
+		if fields[0] == "box_wdith" {
+			i, err := strconv.Atoi(fields[2])
+			if err != nil {
+				return config, errors.New("Recieved non integer for box_width")
 			}
-			return &fields[2], nil
+			config.BoxWidth = i
+		}
+		if fields[0] == "shutdown_cmd" {
+			config.ShutdownCommand = fields[:2]
+		}
+		if fields[0] == "reboot_cmd" {
+			config.RebootCommand = fields[:2]
+		}
+		if fields[0] == "xsessions_path" {
+			config.XsessionsPath = fields[2]
+		}
+		if fields[0] == "wayland_sessions_path" {
+			config.WaylandSessionsPath = fields[2]
 		}
 	}
-	return nil, nil
+
+	return config, nil
 }
 
 func LoadConfig() (*Config, error) {
@@ -236,13 +275,13 @@ func LoadConfig() (*Config, error) {
 
 	wg.Wait()
 
-	sessions = append(sessions, desktopCrawl()...)
-
 	session, _ := loadLastSession()
 
-	ascii, asciiError := parseConfigFile()
-	if asciiError != nil {
-		asciiArtErrors = append(asciiArtErrors, asciiError)
+	configFile, configError := parseConfigFile()
+	sessions = append(sessions, desktopCrawl(configFile.XsessionsPath, configFile.WaylandSessionsPath)...)
+
+	if configError != nil {
+		asciiArtErrors = append(asciiArtErrors, configError)
 	}
 
 	isAsciiError := false
@@ -258,11 +297,10 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		AsciiArts:    asciiArts,
 		isAsciiError: isAsciiError,
 		Sessions:     append(sessions, newShellSession()),
 		LastSession:  session,
-		ascii:        ascii,
+		Extra:        configFile,
 	}, nil
 }
 
@@ -279,15 +317,15 @@ func (self *Config) GetAscii() AsciiArt {
 		return self.AsciiArts[0]
 	}
 
-	if self.ascii != nil {
+	if self.Extra.Ascii != nil {
 		for _, file := range self.AsciiArts {
-			if file.name == *self.ascii {
+			if file.name == *self.Extra.Ascii {
 				return file
 			}
 		}
 		return newAsciiArt(
 			"This doesn't matter because it is never read.",
-			"ascii art `"+*self.ascii+"` not found",
+			"ascii art `"+*self.Extra.Ascii+"` not found",
 			constants.DefaultMessages(),
 		)
 	}

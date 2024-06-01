@@ -77,12 +77,13 @@ type picker struct {
 func (self *picker) draw(boxSize int) (string, int) {
 	sessionName := self.options[self.selected]
 
-	leftover := boxSize - 4 - 30
+	sideSpacing := (boxSize / 2 - 15)
+	leftover := boxSize - 4 - (boxSize / 2 - 15)
 
 	spacingBefore := (leftover - len(sessionName)) / 2
 	spacingAfter := leftover - len(sessionName) - spacingBefore
 
-	return fmt.Sprint(strings.Repeat(" ", 15), " <", strings.Repeat(" ", spacingBefore), sessionName, strings.Repeat(" ", spacingAfter), "> ", strings.Repeat(" ", 15)), 2 + 15
+	return fmt.Sprint(strings.Repeat(" ", sideSpacing), " <", strings.Repeat(" ", spacingBefore), sessionName, strings.Repeat(" ", spacingAfter), "> ", strings.Repeat(" ", sideSpacing)), 2 + sideSpacing
 }
 
 func (self *picker) onInput(tui *Tui, symbol []int) {

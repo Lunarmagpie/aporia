@@ -1,17 +1,16 @@
 package config
 
 import (
-	"aporia/constants"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 )
 
-func desktopCrawl() []Session {
+func desktopCrawl(xsessionsPath string, waylandSessionsPath string) []Session {
 	return append(
-		desktopCrawlPath(constants.X11SessionsDir, X11Session),
-		desktopCrawlPath(constants.WaylandSessionsDir, WaylandSession)...,
+		desktopCrawlPath(xsessionsPath, X11Session),
+		desktopCrawlPath(waylandSessionsPath, WaylandSession)...,
 	)
 }
 

@@ -9,7 +9,6 @@ import (
 
 	"aporia/ansi"
 	"aporia/config"
-	"aporia/constants"
 	"aporia/login"
 
 	"golang.org/x/term"
@@ -58,8 +57,8 @@ func New(config config.Config, resetTo term.State) (Tui, error) {
 }
 
 func (self *Tui) Start() {
-	self.setupDraw()
-	self.draw()
+	self.setupDraw(self.config.Extra.BoxWidth)
+	self.draw(self.config.Extra.BoxWidth)
 	_, _ = term.MakeRaw(int(os.Stdin.Fd()))
 	charReader := ReadTermChars()
 
@@ -75,7 +74,7 @@ func (self *Tui) Start() {
 		if self.loggedIn {
 			break
 		}
-		self.draw()
+		self.draw(self.config.Extra.BoxWidth)
 	}
 }
 
@@ -157,13 +156,13 @@ func (self *Tui) handleInput(symbol []int) {
 
 	// F11
 	if reflect.DeepEqual(symbol, []int{27, 91, 50, 51, 126}) {
-		exec.Command(constants.ShutdownCommand[0], constants.ShutdownCommand[1:]...).Run()
+		exec.Command(self.config.Extra.ShutdownCommand[0], self.config.Extra.ShutdownCommand[1:]...).Run()
 		return
 	}
 
 	// F12
 	if reflect.DeepEqual(symbol, []int{27, 91, 50, 52, 126}) {
-		exec.Command(constants.RebootCommand[0], constants.RebootCommand[1:]...).Run()
+		exec.Command(self.config.Extra.RebootCommand[0], self.config.Extra.RebootCommand[1:]...).Run()
 		return
 	}
 
@@ -196,7 +195,7 @@ func (self *Tui) login() {
 		defer term.Restore(int(os.Stdin.Fd()), oldState)
 
 		self.message = message
-		self.draw()
+		self.draw(self.config.Extra.BoxWidth)
 	}
 
 	err := login.Authenticate(username, password, session, set_message)
