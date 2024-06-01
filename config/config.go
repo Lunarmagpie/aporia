@@ -200,7 +200,7 @@ func parseConfigFile() (ConfigFile, error) {
 
 	for _, line := range contentsLines {
 		line = strings.TrimSpace(line)
-		if line[0] == '#' {
+		if len(line) == 0 || line[0] == '#' {
 			continue
 		}
 
