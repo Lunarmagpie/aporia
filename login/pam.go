@@ -139,7 +139,7 @@ func pamReason(err C.int) string {
 	case C.PAM_ABORT:
 		return "ABORT lol"
 	default:
-		return "Unknown Error"
+		return fmt.Sprint("Unknown Error: ", err)
 	}
 }
 
