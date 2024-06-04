@@ -25,8 +25,7 @@ To have ascii art you must create a file called `/etc/aporia/NAME.ascii`. Name s
 Aporia will detect desktop environments automatically.
 
 ### Configuration
-To configure Aporia, create a file called `/etc/aporia/config`. Currently the only conig option is `ascii = name`. See [`examples/config`](/examples/config) for more
-information.
+To configure Aporia, create a file called `/etc/aporia/config`. See [`examples/config`](/examples/config) for more information.
 
 ### Adding Custom Desktop Environments
 Custom desktop environments are added as scripts.
