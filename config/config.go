@@ -215,7 +215,7 @@ func parseConfigFile() (ConfigFile, error) {
 		if fields[0] == "box_wdith" {
 			i, err := strconv.Atoi(fields[2])
 			if err != nil {
-				return config, errors.New("Recieved non integer for box_width")
+				return config, errors.New("Received non integer for box_width")
 			}
 			config.BoxWidth = i
 		}
