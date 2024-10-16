@@ -1,5 +1,4 @@
-package login
-
+package login 
 // #cgo CFLAGS: -g
 // #cgo LDFLAGS: -lpam -lpam_misc
 // #include <stdlib.h>
@@ -35,7 +34,7 @@ func addUtmpEntry(entry *C.struct_utmp, pwnam *C.struct_passwd, pid C.int) {
 func setEntryTime(entry *C.struct_utmp) {
 	var tv C.struct_timeval
 	C.gettimeofday(&tv, C.NULL)
-	entry.ut_tv.tv_sec = C.int(tv.tv_sec)
+	entry.ut_tv.tv_sec = C.uint(tv.tv_sec)
 	entry.ut_tv.tv_usec = C.int(tv.tv_usec)
 }
 
