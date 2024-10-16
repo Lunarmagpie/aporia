@@ -301,6 +301,7 @@ func LoadConfig() (*Config, error) {
 		Sessions:     append(sessions, newShellSession()),
 		LastSession:  session,
 		Extra:        configFile,
+		AsciiArts:    asciiArts,
 	}, nil
 }
 
